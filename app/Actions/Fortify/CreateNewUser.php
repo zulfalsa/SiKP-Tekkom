@@ -20,6 +20,12 @@ class CreateNewUser implements CreatesNewUsers
     {
         Validator::make($input, [
             'name' => ['required', 'string', 'max:255'],
+            'identity_number' => [
+                'required', 
+                'string', 
+                'max:20', // Sesuaikan panjang maksimal NIP/NIM
+                Rule::unique(User::class),
+            ],
             'email' => [
                 'required',
                 'string',
@@ -32,6 +38,7 @@ class CreateNewUser implements CreatesNewUsers
 
         return User::create([
             'name' => $input['name'],
+            'identity_number' => $input['identity_number'],
             'email' => $input['email'],
             'password' => $input['password'],
         ]);
