@@ -3,15 +3,15 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Repositories\Interfaces\AnnouncementRepositoryInterface;
+use App\Repositories\Interfaces\LinkRepositoryInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
 
-class AnnouncementController extends Controller
+class LinkController extends Controller
 {
     protected $repo;
 
-    public function __construct(AnnouncementRepositoryInterface $repo)
+    public function __construct(LinkRepositoryInterface $repo)
     {
         $this->repo = $repo;
     }
@@ -20,14 +20,10 @@ class AnnouncementController extends Controller
     {
         $request->validate([
             'title' => 'required|string|max:255',
-            'content' => 'required|string',
+            'url' => 'required|url',
         ]);
 
-        $this->repo->create([
-            'title' => $request->title,
-            'content' => $request->content,
-            'is_active' => true,
-        ]);
+        $this->repo->create($request->all());
 
         return Redirect::back();
     }
