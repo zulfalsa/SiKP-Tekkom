@@ -12,6 +12,9 @@ use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
+// Import Interface dan Class Custom Response kita
+use Laravel\Fortify\Contracts\LoginResponse;
+use App\Http\Responses\LoginResponse as CustomLoginResponse;
 
 class FortifyServiceProvider extends ServiceProvider
 {
@@ -20,7 +23,9 @@ class FortifyServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Mendaftarkan Custom Login Response
+        // Ini memberitahu Fortify: "Jika butuh LoginResponse, pakai CustomLoginResponse saya"
+        $this->app->singleton(LoginResponse::class, CustomLoginResponse::class);
     }
 
     /**
