@@ -6,7 +6,9 @@ import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea'; 
+// import { Textarea } from '@/components/ui/textarea'; // Hapus atau komentar ini karena diganti RichTextEditor
+import RichTextEditor from '@/components/rich-text-editor'; // Import komponen baru
+
 import {
     Card,
     CardContent,
@@ -82,7 +84,6 @@ export default function Dashboard({ documents = [], announcements = [], links = 
     // --- FORMS ---
 
     // 1. Dokumen Form
-    // Tambahkan _method: 'POST' secara default. Nanti diubah jadi 'PUT' saat edit agar support file upload.
     const docForm = useForm({ 
         title: '', 
         description: '', 
@@ -112,7 +113,7 @@ export default function Dashboard({ documents = [], announcements = [], links = 
             title: doc.title,
             description: doc.description || '',
             file: null,
-            _method: 'PUT' // Penting untuk update file di Laravel via POST
+            _method: 'PUT' 
         });
         setDocOpen(true);
     };
@@ -149,14 +150,11 @@ export default function Dashboard({ documents = [], announcements = [], links = 
         e.preventDefault();
         
         if (editingDoc) {
-            // URL Edit: /admin/documents/{id}
-            // Kita pakai POST + _method: PUT karena FormData (file upload) tidak native support PUT di browser
             docForm.post(`/admin/documents/${editingDoc.id}`, {
                 onSuccess: () => { docForm.reset(); setDocOpen(false); },
                 forceFormData: true,
             });
         } else {
-            // URL Create: /admin/documents
             docForm.post('/admin/documents', {
                 onSuccess: () => { docForm.reset(); setDocOpen(false); },
             });
@@ -167,12 +165,10 @@ export default function Dashboard({ documents = [], announcements = [], links = 
         e.preventDefault();
         
         if (editingAnn) {
-            // URL Edit: /admin/announcements/{id}
             annForm.put(`/admin/announcements/${editingAnn.id}`, {
                 onSuccess: () => { annForm.reset(); setAnnOpen(false); },
             });
         } else {
-            // URL Create: /admin/announcements
             annForm.post('/admin/announcements', {
                 onSuccess: () => { annForm.reset(); setAnnOpen(false); },
             });
@@ -183,12 +179,10 @@ export default function Dashboard({ documents = [], announcements = [], links = 
         e.preventDefault();
 
         if (editingLink) {
-            // URL Edit: /admin/links/{id}
             linkForm.put(`/admin/links/${editingLink.id}`, {
                 onSuccess: () => { linkForm.reset(); setLinkOpen(false); },
             });
         } else {
-            // URL Create: /admin/links
             linkForm.post('/admin/links', {
                 onSuccess: () => { linkForm.reset(); setLinkOpen(false); },
             });
@@ -237,7 +231,6 @@ export default function Dashboard({ documents = [], announcements = [], links = 
                                 </div>
                                 <Dialog open={docOpen} onOpenChange={setDocOpen}>
                                     <DialogTrigger asChild>
-                                        {/* Ganti onClick standard dengan handler khusus */}
                                         <Button 
                                             className="bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90"
                                             onClick={openCreateDoc}
@@ -339,7 +332,6 @@ export default function Dashboard({ documents = [], announcements = [], links = 
                                                             >
                                                                 <Download className="h-4 w-4" />
                                                             </a>
-                                                            {/* Tombol Edit */}
                                                             <Button 
                                                                 variant="ghost" 
                                                                 size="icon" 
@@ -348,7 +340,6 @@ export default function Dashboard({ documents = [], announcements = [], links = 
                                                             >
                                                                 <Pencil className="h-4 w-4" />
                                                             </Button>
-                                                            {/* Tombol Hapus */}
                                                             <Button 
                                                                 variant="destructive" 
                                                                 size="icon" 
@@ -387,11 +378,11 @@ export default function Dashboard({ documents = [], announcements = [], links = 
                                             <Plus className="mr-2 h-4 w-4" /> Buat Baru
                                         </Button>
                                     </DialogTrigger>
-                                    <DialogContent>
+                                    <DialogContent className="sm:max-w-[725px]">
                                         <DialogHeader>
                                             <DialogTitle>{editingAnn ? 'Edit Pengumuman' : 'Buat Pengumuman Baru'}</DialogTitle>
                                             <DialogDescription>
-                                                Informasi akan langsung tampil di dashboard mahasiswa.
+                                                Informasi akan langsung tampil di dashboard mahasiswa. Gunakan editor untuk format teks dan link.
                                             </DialogDescription>
                                         </DialogHeader>
                                         <form onSubmit={submitAnn} className="space-y-4 mt-2">
@@ -405,12 +396,10 @@ export default function Dashboard({ documents = [], announcements = [], links = 
                                             </div>
                                             <div className="space-y-2">
                                                 <Label>Isi Pengumuman</Label>
-                                                <Textarea
-                                                    className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                                    rows={5}
-                                                    value={annForm.data.content} 
-                                                    onChange={e => annForm.setData('content', e.target.value)} 
-                                                    required 
+                                                {/* Menggunakan Rich Text Editor */}
+                                                <RichTextEditor 
+                                                    value={annForm.data.content}
+                                                    onChange={(content) => annForm.setData('content', content)}
                                                 />
                                             </div>
                                             <div className="flex justify-end pt-2">
@@ -453,9 +442,11 @@ export default function Dashboard({ documents = [], announcements = [], links = 
                                                         </Button>
                                                     </div>
                                                 </div>
-                                                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                                                    {ann.content}
-                                                </p>
+                                                {/* Render HTML Content */}
+                                                <div 
+                                                    className="text-sm text-muted-foreground prose dark:prose-invert max-w-none [&_a]:text-blue-600 [&_a]:underline [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4"
+                                                    dangerouslySetInnerHTML={{ __html: ann.content }}
+                                                />
                                                 <p className="text-xs text-muted-foreground pt-2 border-t mt-2">
                                                     Diposting pada: {new Date(ann.created_at).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                                                 </p>

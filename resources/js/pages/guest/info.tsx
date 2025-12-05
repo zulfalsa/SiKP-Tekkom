@@ -1,5 +1,5 @@
 import { Head } from '@inertiajs/react';
-import { Megaphone, Calendar, Info, Eye } from 'lucide-react'; // Hapus 'Home' dan 'Link' krn sudah ada di Sidebar
+import { Megaphone, Calendar, Info, Eye } from 'lucide-react'; 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -10,7 +10,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { useState } from 'react';
-import AppLayout from '@/layouts/app-layout'; // Import Layout
+import AppLayout from '@/layouts/app-layout'; 
 import { type BreadcrumbItem } from '@/types';
 
 // Interface untuk data pengumuman
@@ -81,10 +81,11 @@ export default function GuestInfo({ announcements = [], auth }: InfoProps) {
                             </CardHeader>
                             <CardContent className="pt-6 relative">
                                 <div className="prose dark:prose-invert max-w-none">
-                                    {/* Tampilkan cuplikan konten (maks 3 baris) */}
-                                    <p className="whitespace-pre-wrap text-gray-600 dark:text-gray-300 leading-relaxed text-base line-clamp-3">
-                                        {ann.content}
-                                    </p>
+                                    {/* PERUBAHAN: Render HTML, bukan text biasa */}
+                                    <div 
+                                        className="whitespace-pre-wrap text-gray-600 dark:text-gray-300 leading-relaxed text-base line-clamp-3 [&_a]:text-blue-600 [&_a]:underline"
+                                        dangerouslySetInnerHTML={{ __html: ann.content }}
+                                    />
                                 </div>
                                 {/* Tombol Baca Selengkapnya */}
                                 <div className="mt-4 flex justify-end">
@@ -132,9 +133,11 @@ export default function GuestInfo({ announcements = [], auth }: InfoProps) {
                             </DialogHeader>
                             
                             <div className="mt-6 space-y-4">
-                                <div className="prose dark:prose-invert max-w-none whitespace-pre-wrap leading-relaxed text-base text-foreground">
-                                    {selectedAnnouncement.content}
-                                </div>
+                                {/* PERUBAHAN: Render HTML di Modal */}
+                                <div 
+                                    className="prose dark:prose-invert max-w-none whitespace-pre-wrap leading-relaxed text-base text-foreground [&_a]:text-blue-600 [&_a]:underline [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4"
+                                    dangerouslySetInnerHTML={{ __html: selectedAnnouncement.content }}
+                                />
                             </div>
 
                             <div className="mt-8 flex justify-end pt-4 border-t">
