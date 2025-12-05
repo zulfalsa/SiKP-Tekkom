@@ -9,12 +9,7 @@ use Illuminate\Support\Facades\Redirect;
 
 class AnnouncementController extends Controller
 {
-    protected $repo;
-
-    public function __construct(AnnouncementRepositoryInterface $repo)
-    {
-        $this->repo = $repo;
-    }
+    public function __construct(protected AnnouncementRepositoryInterface $repo) {}
 
     public function store(Request $request)
     {
@@ -27,6 +22,21 @@ class AnnouncementController extends Controller
             'title' => $request->title,
             'content' => $request->content,
             'is_active' => true,
+        ]);
+
+        return Redirect::back();
+    }
+
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'content' => 'required|string',
+        ]);
+
+        $this->repo->update($id, [
+            'title' => $request->title,
+            'content' => $request->content,
         ]);
 
         return Redirect::back();

@@ -1,6 +1,6 @@
 import { useState, type FormEventHandler } from 'react';
 import { Head, useForm, router } from '@inertiajs/react';
-import { Plus, Trash2, FileText, Megaphone, Link as LinkIcon, Download } from 'lucide-react';
+import { Plus, Trash2, FileText, Megaphone, Link as LinkIcon, Download, Pencil } from 'lucide-react';
 
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
@@ -55,6 +55,11 @@ interface DashboardProps {
     }>;
 }
 
+// Interface Helper
+interface Document { id: number; title: string; description: string | null; file_path: string; created_at: string; }
+interface Announcement { id: number; title: string; content: string; created_at: string; }
+interface Link { id: number; title: string; url: string; }
+
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Dashboard',
@@ -64,51 +69,130 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function Dashboard({ documents = [], announcements = [], links = [] }: DashboardProps) {
     
-    // --- STATE & FORM HANDLERS ---
-
-    // 1. Dokumen State
+    // --- STATE MANAGEMENT ---
     const [docOpen, setDocOpen] = useState(false);
-    const docForm = useForm({ title: '', description: '', file: null as File | null });
+    const [annOpen, setAnnOpen] = useState(false);
+    const [linkOpen, setLinkOpen] = useState(false);
+
+    // State untuk menyimpan item yang sedang diedit
+    const [editingDoc, setEditingDoc] = useState<Document | null>(null);
+    const [editingAnn, setEditingAnn] = useState<Announcement | null>(null);
+    const [editingLink, setEditingLink] = useState<Link | null>(null);
+
+    // --- FORMS ---
+
+    // 1. Dokumen Form
+    // Tambahkan _method: 'POST' secara default. Nanti diubah jadi 'PUT' saat edit agar support file upload.
+    const docForm = useForm({ 
+        title: '', 
+        description: '', 
+        file: null as File | null, 
+        _method: 'POST' 
+    });
+
+    // 2. Pengumuman Form
+    const annForm = useForm({ title: '', content: '' });
+
+    // 3. Link Form
+    const linkForm = useForm({ title: '', url: '' });
+
+    // --- OPEN/CLOSE HELPERS ---
+
+    // Dokumen Helpers
+    const openCreateDoc = () => {
+        setEditingDoc(null);
+        docForm.reset();
+        docForm.setData({ title: '', description: '', file: null, _method: 'POST' });
+        setDocOpen(true);
+    };
+
+    const openEditDoc = (doc: Document) => {
+        setEditingDoc(doc);
+        docForm.setData({
+            title: doc.title,
+            description: doc.description || '',
+            file: null,
+            _method: 'PUT' // Penting untuk update file di Laravel via POST
+        });
+        setDocOpen(true);
+    };
+
+    // Pengumuman Helpers
+    const openCreateAnn = () => {
+        setEditingAnn(null);
+        annForm.reset();
+        setAnnOpen(true);
+    };
+
+    const openEditAnn = (ann: Announcement) => {
+        setEditingAnn(ann);
+        annForm.setData({ title: ann.title, content: ann.content });
+        setAnnOpen(true);
+    };
+
+    // Link Helpers
+    const openCreateLink = () => {
+        setEditingLink(null);
+        linkForm.reset();
+        setLinkOpen(true);
+    };
+
+    const openEditLink = (link: Link) => {
+        setEditingLink(link);
+        linkForm.setData({ title: link.title, url: link.url });
+        setLinkOpen(true);
+    };
+
+    // --- SUBMIT HANDLERS ---
 
     const submitDoc: FormEventHandler = (e) => {
         e.preventDefault();
-        // Menggunakan path manual '/admin/documents' menggantikan route('admin.documents.store')
-        docForm.post('/admin/documents', {
-            onSuccess: () => {
-                docForm.reset();
-                setDocOpen(false);
-            },
-        });
+        
+        if (editingDoc) {
+            // URL Edit: /admin/documents/{id}
+            // Kita pakai POST + _method: PUT karena FormData (file upload) tidak native support PUT di browser
+            docForm.post(`/admin/documents/${editingDoc.id}`, {
+                onSuccess: () => { docForm.reset(); setDocOpen(false); },
+                forceFormData: true,
+            });
+        } else {
+            // URL Create: /admin/documents
+            docForm.post('/admin/documents', {
+                onSuccess: () => { docForm.reset(); setDocOpen(false); },
+            });
+        }
     };
-
-    // 2. Pengumuman State
-    const [annOpen, setAnnOpen] = useState(false);
-    const annForm = useForm({ title: '', content: '' });
 
     const submitAnn: FormEventHandler = (e) => {
         e.preventDefault();
-        // Menggunakan path manual '/admin/announcements'
-        annForm.post('/admin/announcements', {
-            onSuccess: () => {
-                annForm.reset();
-                setAnnOpen(false);
-            },
-        });
+        
+        if (editingAnn) {
+            // URL Edit: /admin/announcements/{id}
+            annForm.put(`/admin/announcements/${editingAnn.id}`, {
+                onSuccess: () => { annForm.reset(); setAnnOpen(false); },
+            });
+        } else {
+            // URL Create: /admin/announcements
+            annForm.post('/admin/announcements', {
+                onSuccess: () => { annForm.reset(); setAnnOpen(false); },
+            });
+        }
     };
-
-    // 3. Link State
-    const [linkOpen, setLinkOpen] = useState(false);
-    const linkForm = useForm({ title: '', url: '' });
 
     const submitLink: FormEventHandler = (e) => {
         e.preventDefault();
-        // Menggunakan path manual '/admin/links'
-        linkForm.post('/admin/links', {
-            onSuccess: () => {
-                linkForm.reset();
-                setLinkOpen(false);
-            },
-        });
+
+        if (editingLink) {
+            // URL Edit: /admin/links/{id}
+            linkForm.put(`/admin/links/${editingLink.id}`, {
+                onSuccess: () => { linkForm.reset(); setLinkOpen(false); },
+            });
+        } else {
+            // URL Create: /admin/links
+            linkForm.post('/admin/links', {
+                onSuccess: () => { linkForm.reset(); setLinkOpen(false); },
+            });
+        }
     };
 
     // Fungsi Hapus Universal
@@ -153,13 +237,17 @@ export default function Dashboard({ documents = [], announcements = [], links = 
                                 </div>
                                 <Dialog open={docOpen} onOpenChange={setDocOpen}>
                                     <DialogTrigger asChild>
-                                        <Button className="bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90">
+                                        {/* Ganti onClick standard dengan handler khusus */}
+                                        <Button 
+                                            className="bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90"
+                                            onClick={openCreateDoc}
+                                        >
                                             <Plus className="mr-2 h-4 w-4" /> Upload
                                         </Button>
                                     </DialogTrigger>
                                     <DialogContent>
                                         <DialogHeader>
-                                            <DialogTitle>Upload Dokumen Baru</DialogTitle>
+                                            <DialogTitle>{editingDoc ? 'Edit Dokumen' : 'Upload Dokumen Baru'}</DialogTitle>
                                             <DialogDescription>
                                                 File akan tersedia untuk didownload oleh mahasiswa.
                                             </DialogDescription>
@@ -185,18 +273,21 @@ export default function Dashboard({ documents = [], announcements = [], links = 
                                                 />
                                             </div>
                                             <div className="space-y-2">
-                                                <Label htmlFor="doc-file">File (PDF/DOCX/XLSX - Max 5MB)</Label>
+                                                <Label htmlFor="doc-file">
+                                                    File (PDF/DOCX/XLSX - Max 5MB)
+                                                    {editingDoc && <span className="text-xs text-muted-foreground ml-2">(Biarkan kosong jika tidak diganti)</span>}
+                                                </Label>
                                                 <Input 
                                                     id="doc-file"
                                                     type="file" 
                                                     onChange={e => docForm.setData('file', e.target.files ? e.target.files[0] : null)} 
-                                                    required 
+                                                    required={!editingDoc} // Wajib hanya jika create baru
                                                 />
                                                 {docForm.errors.file && <p className="text-sm text-red-500">{docForm.errors.file}</p>}
                                             </div>
                                             <div className="flex justify-end pt-2">
                                                 <Button type="submit" disabled={docForm.processing}>
-                                                    {docForm.processing ? 'Mengunggah...' : 'Simpan Dokumen'}
+                                                    {docForm.processing ? 'Menyimpan...' : 'Simpan Dokumen'}
                                                 </Button>
                                             </div>
                                         </form>
@@ -241,7 +332,6 @@ export default function Dashboard({ documents = [], announcements = [], links = 
                                                     <TableCell className="text-right">
                                                         <div className="flex justify-end gap-2">
                                                             <a 
-                                                                // Manual path untuk download
                                                                 href={`/dokumen/download/${doc.id}`} 
                                                                 target="_blank"
                                                                 rel="noreferrer"
@@ -249,11 +339,20 @@ export default function Dashboard({ documents = [], announcements = [], links = 
                                                             >
                                                                 <Download className="h-4 w-4" />
                                                             </a>
+                                                            {/* Tombol Edit */}
+                                                            <Button 
+                                                                variant="ghost" 
+                                                                size="icon" 
+                                                                className="h-8 w-8 text-amber-600 hover:bg-amber-100"
+                                                                onClick={() => openEditDoc(doc)}
+                                                            >
+                                                                <Pencil className="h-4 w-4" />
+                                                            </Button>
+                                                            {/* Tombol Hapus */}
                                                             <Button 
                                                                 variant="destructive" 
                                                                 size="icon" 
                                                                 className="h-8 w-8"
-                                                                // Manual path untuk delete
                                                                 onClick={() => deleteItem(`/admin/documents/${doc.id}`)}
                                                             >
                                                                 <Trash2 className="h-4 w-4" />
@@ -281,13 +380,16 @@ export default function Dashboard({ documents = [], announcements = [], links = 
                                 </div>
                                 <Dialog open={annOpen} onOpenChange={setAnnOpen}>
                                     <DialogTrigger asChild>
-                                        <Button className="bg-sidebar-primary text-sidebar-primary-foreground">
+                                        <Button 
+                                            className="bg-sidebar-primary text-sidebar-primary-foreground"
+                                            onClick={openCreateAnn}
+                                        >
                                             <Plus className="mr-2 h-4 w-4" /> Buat Baru
                                         </Button>
                                     </DialogTrigger>
                                     <DialogContent>
                                         <DialogHeader>
-                                            <DialogTitle>Buat Pengumuman Baru</DialogTitle>
+                                            <DialogTitle>{editingAnn ? 'Edit Pengumuman' : 'Buat Pengumuman Baru'}</DialogTitle>
                                             <DialogDescription>
                                                 Informasi akan langsung tampil di dashboard mahasiswa.
                                             </DialogDescription>
@@ -312,7 +414,9 @@ export default function Dashboard({ documents = [], announcements = [], links = 
                                                 />
                                             </div>
                                             <div className="flex justify-end pt-2">
-                                                <Button type="submit" disabled={annForm.processing}>Publikasikan</Button>
+                                                <Button type="submit" disabled={annForm.processing}>
+                                                    {annForm.processing ? 'Menyimpan...' : 'Publikasikan'}
+                                                </Button>
                                             </div>
                                         </form>
                                     </DialogContent>
@@ -330,15 +434,24 @@ export default function Dashboard({ documents = [], announcements = [], links = 
                                                         <Megaphone className="h-4 w-4 text-orange-500" />
                                                         <h4 className="font-semibold">{ann.title}</h4>
                                                     </div>
-                                                    <Button 
-                                                        variant="ghost" 
-                                                        size="icon" 
-                                                        className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-100"
-                                                        // Manual path untuk delete
-                                                        onClick={() => deleteItem(`/admin/announcements/${ann.id}`)}
-                                                    >
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </Button>
+                                                    <div className="flex gap-1">
+                                                        <Button 
+                                                            variant="ghost" 
+                                                            size="icon" 
+                                                            className="h-8 w-8 text-amber-600 hover:bg-amber-100"
+                                                            onClick={() => openEditAnn(ann)}
+                                                        >
+                                                            <Pencil className="h-4 w-4" />
+                                                        </Button>
+                                                        <Button 
+                                                            variant="ghost" 
+                                                            size="icon" 
+                                                            className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-100"
+                                                            onClick={() => deleteItem(`/admin/announcements/${ann.id}`)}
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </Button>
+                                                    </div>
                                                 </div>
                                                 <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                                                     {ann.content}
@@ -366,13 +479,16 @@ export default function Dashboard({ documents = [], announcements = [], links = 
                                 </div>
                                 <Dialog open={linkOpen} onOpenChange={setLinkOpen}>
                                     <DialogTrigger asChild>
-                                        <Button className="bg-sidebar-primary text-sidebar-primary-foreground">
+                                        <Button 
+                                            className="bg-sidebar-primary text-sidebar-primary-foreground"
+                                            onClick={openCreateLink}
+                                        >
                                             <Plus className="mr-2 h-4 w-4" /> Tambah Link
                                         </Button>
                                     </DialogTrigger>
                                     <DialogContent>
                                         <DialogHeader>
-                                            <DialogTitle>Tambah Link Baru</DialogTitle>
+                                            <DialogTitle>{editingLink ? 'Edit Link' : 'Tambah Link Baru'}</DialogTitle>
                                             <DialogDescription>
                                                 Isi label dan URL tujuan.
                                             </DialogDescription>
@@ -398,7 +514,9 @@ export default function Dashboard({ documents = [], announcements = [], links = 
                                                 />
                                             </div>
                                             <div className="flex justify-end pt-2">
-                                                <Button type="submit" disabled={linkForm.processing}>Simpan</Button>
+                                                <Button type="submit" disabled={linkForm.processing}>
+                                                    {linkForm.processing ? 'Menyimpan...' : 'Simpan'}
+                                                </Button>
                                             </div>
                                         </form>
                                     </DialogContent>
@@ -435,15 +553,24 @@ export default function Dashboard({ documents = [], announcements = [], links = 
                                                         </a>
                                                     </TableCell>
                                                     <TableCell className="text-right">
-                                                        <Button 
-                                                            variant="ghost" 
-                                                            size="icon" 
-                                                            className="h-8 w-8 text-red-500 hover:bg-red-100"
-                                                            // Manual path untuk delete
-                                                            onClick={() => deleteItem(`/admin/links/${link.id}`)}
-                                                        >
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </Button>
+                                                        <div className="flex justify-end gap-2">
+                                                            <Button 
+                                                                variant="ghost" 
+                                                                size="icon" 
+                                                                className="h-8 w-8 text-amber-600 hover:bg-amber-100"
+                                                                onClick={() => openEditLink(link)}
+                                                            >
+                                                                <Pencil className="h-4 w-4" />
+                                                            </Button>
+                                                            <Button 
+                                                                variant="ghost" 
+                                                                size="icon" 
+                                                                className="h-8 w-8 text-red-500 hover:bg-red-100"
+                                                                onClick={() => deleteItem(`/admin/links/${link.id}`)}
+                                                            >
+                                                                <Trash2 className="h-4 w-4" />
+                                                            </Button>
+                                                        </div>
                                                     </TableCell>
                                                 </TableRow>
                                             ))

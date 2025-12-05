@@ -7,46 +7,28 @@ use App\Repositories\Interfaces\DocumentRepositoryInterface;
 use App\Services\RepositoryDocumentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Inertia\Inertia;
+use Illuminate\Support\Facades\Redirect;
 use App\Exceptions\DocumentFailureException;
 
 class DocumentController extends Controller
 {
-    protected $repository;
-    protected $fileService;
-
-    // Dependency Injection Interface & Abstract implementation
     public function __construct(
-        DocumentRepositoryInterface $repository,
-        RepositoryDocumentService $fileService
-    ) {
-        $this->repository = $repository;
-        $this->fileService = $fileService;
-    }
-
-    public function index()
-    {
-        // Mengambil semua dokumen untuk ditampilkan di Dashboard Admin
-        $documents = $this->repository->getAllActive();
-        return Inertia::render('admin/documents/index', [
-            'documents' => $documents
-        ]);
-    }
+        protected DocumentRepositoryInterface $repository,
+        protected RepositoryDocumentService $fileService
+    ) {}
 
     public function store(Request $request)
     {
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'file' => 'required|file|mimes:pdf,doc,docx,xls,xlsx|max:5120', // Max 5MB
+            'file' => 'required|file|mimes:pdf,doc,docx,xls,xlsx|max:5120',
         ]);
 
         DB::beginTransaction();
         try {
-            // Upload file menggunakan Service (OOP)
             $filePath = $this->fileService->upload($request->file('file'));
 
-            // Simpan data ke database via Repository
             $this->repository->create([
                 'title' => $request->title,
                 'description' => $request->description,
@@ -55,30 +37,54 @@ class DocumentController extends Controller
             ]);
 
             DB::commit();
-            return redirect()->back()->with('success', 'Dokumen berhasil diunggah.');
-
-        } catch (DocumentFailureException $e) {
-            DB::rollBack();
-            return redirect()->back()->withErrors(['file' => $e->getMessage()]);
+            return Redirect::back()->with('success', 'Dokumen berhasil diunggah.');
         } catch (\Exception $e) {
             DB::rollBack();
-            return redirect()->back()->withErrors(['file' => 'Terjadi kesalahan sistem.']);
+            return Redirect::back()->withErrors(['file' => 'Gagal mengunggah dokumen.']);
+        }
+    }
+
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'file' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx|max:5120',
+        ]);
+
+        $document = $this->repository->find($id);
+        if (!$document) return Redirect::back()->withErrors(['error' => 'Dokumen tidak ditemukan.']);
+
+        $data = [
+            'title' => $request->title,
+            'description' => $request->description,
+        ];
+
+        DB::beginTransaction();
+        try {
+            // Jika ada file baru, hapus lama & upload baru
+            if ($request->hasFile('file')) {
+                $this->fileService->delete($document->file_path);
+                $data['file_path'] = $this->fileService->upload($request->file('file'));
+            }
+
+            $this->repository->update($id, $data);
+
+            DB::commit();
+            return Redirect::back()->with('success', 'Dokumen diperbarui.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return Redirect::back()->withErrors(['file' => 'Gagal memperbarui dokumen.']);
         }
     }
 
     public function destroy($id)
     {
         $document = $this->repository->find($id);
-
         if ($document) {
-            // Hapus file fisik menggunakan Service
             $this->fileService->delete($document->file_path);
-            // Hapus data database
             $this->repository->delete($id);
-            
-            return redirect()->back()->with('success', 'Dokumen berhasil dihapus.');
         }
-
-        return redirect()->back()->withErrors(['error' => 'Dokumen tidak ditemukan.']);
+        return Redirect::back();
     }
 }

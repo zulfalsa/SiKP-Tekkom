@@ -19,9 +19,20 @@ class EloquentLinkRepository implements LinkRepositoryInterface
         return ExternalLink::create($data);
     }
 
+    public function update(int $id, array $data): bool
+    {
+        $link = $this->find($id);
+        return $link ? $link->update($data) : false;
+    }
+
     public function delete(int $id): bool
     {
-        $record = ExternalLink::find($id);
-        return $record ? $record->delete() : false;
+        $link = $this->find($id);
+        return $link ? $link->delete() : false;
+    }
+
+    public function find(int $id): ?Model
+    {
+        return ExternalLink::find($id);
     }
 }

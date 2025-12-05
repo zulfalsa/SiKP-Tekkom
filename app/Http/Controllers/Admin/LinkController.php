@@ -9,12 +9,7 @@ use Illuminate\Support\Facades\Redirect;
 
 class LinkController extends Controller
 {
-    protected $repo;
-
-    public function __construct(LinkRepositoryInterface $repo)
-    {
-        $this->repo = $repo;
-    }
+    public function __construct(protected LinkRepositoryInterface $repo) {}
 
     public function store(Request $request)
     {
@@ -24,6 +19,18 @@ class LinkController extends Controller
         ]);
 
         $this->repo->create($request->all());
+
+        return Redirect::back();
+    }
+
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'url' => 'required|url',
+        ]);
+
+        $this->repo->update($id, $request->all());
 
         return Redirect::back();
     }

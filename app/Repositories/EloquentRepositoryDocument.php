@@ -21,9 +21,15 @@ class EloquentRepositoryDocument implements DocumentRepositoryInterface
         return RepositoryDocument::create($data);
     }
 
+    public function update(int $id, array $data): bool
+    {
+        $doc = $this->find($id);
+        return $doc ? $doc->update($data) : false;
+    }
+
     public function delete(int $id): bool
     {
-        $doc = RepositoryDocument::find($id);
+        $doc = $this->find($id);
         if ($doc) {
             return $doc->delete();
         }
