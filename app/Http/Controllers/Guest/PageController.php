@@ -21,11 +21,11 @@ class PageController extends Controller
         protected RepositoryDocumentService $fileService
     ) {}
 
-    public function welcome()
+    public function chat()
     {
         $announcements = $this->announcementRepo->getAllActive()->take(3);
         
-        return Inertia::render('welcome', [
+        return Inertia::render('guest/chat-assistant', [
             'announcements' => $announcements,
             'canLogin' => true,
             'auth' => ['user' => Auth::user()]

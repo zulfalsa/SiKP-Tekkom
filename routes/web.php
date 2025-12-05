@@ -9,7 +9,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use Inertia\Inertia;
 
 // --- GUEST ROUTES ---
-Route::get('/', [PageController::class, 'welcome'])->name('home');
+Route::get('/', [PageController::class, 'chat'])->name('home');
 Route::get('/dokumen', [PageController::class, 'documents'])->name('guest.documents');
 Route::get('/dokumen/download/{id}', [PageController::class, 'downloadDocument'])->name('guest.documents.download');
 Route::get('/info-syarat', [PageController::class, 'info'])->name('guest.info');

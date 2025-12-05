@@ -1,5 +1,5 @@
-import { Head, Link } from '@inertiajs/react';
-import { Megaphone, Home, Calendar, Info, Eye } from 'lucide-react';
+import { Head } from '@inertiajs/react';
+import { Megaphone, Calendar, Info, Eye } from 'lucide-react'; // Hapus 'Home' dan 'Link' krn sudah ada di Sidebar
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -8,9 +8,10 @@ import {
     DialogDescription,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
 } from '@/components/ui/dialog';
 import { useState } from 'react';
+import AppLayout from '@/layouts/app-layout'; // Import Layout
+import { type BreadcrumbItem } from '@/types';
 
 // Interface untuk data pengumuman
 interface Announcement {
@@ -25,6 +26,14 @@ interface InfoProps {
     auth: { user: any };
 }
 
+// Definisi Breadcrumbs
+const breadcrumbs: BreadcrumbItem[] = [
+    {
+        title: 'Info & Syarat',
+        href: '/info-syarat',
+    },
+];
+
 export default function GuestInfo({ announcements = [], auth }: InfoProps) {
     // State untuk menyimpan pengumuman yang sedang dipilih untuk ditampilkan di modal
     const [selectedAnnouncement, setSelectedAnnouncement] = useState<Announcement | null>(null);
@@ -37,24 +46,25 @@ export default function GuestInfo({ announcements = [], auth }: InfoProps) {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 font-sans">
+        <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Informasi & Pengumuman" />
             
-            {/* Header */}
-            <div className="bg-white dark:bg-gray-800 border-b p-4 sticky top-0 z-10 shadow-sm">
-                <div className="max-w-4xl mx-auto flex justify-between items-center">
-                    <h1 className="font-bold text-xl flex items-center gap-2 text-gray-800 dark:text-white">
-                        <Info className="h-6 w-6 text-orange-600" />
-                        Papan Informasi
-                    </h1>
-                    <Link href="/">
-                        <Button variant="ghost" size="sm"><Home className="mr-2 h-4 w-4"/> Beranda</Button>
-                    </Link>
+            {/* Container Utama */}
+            <div className="flex h-full flex-1 flex-col gap-4 p-4 md:p-6 overflow-y-auto">
+                
+                {/* Header Halaman */}
+                <div className="flex items-center justify-between mb-4">
+                    <div>
+                        <h1 className="text-2xl font-bold tracking-tight text-sidebar-foreground">
+                            Papan Informasi
+                        </h1>
+                        <p className="text-muted-foreground">
+                            Berita terbaru dan informasi penting seputar Kerja Praktik.
+                        </p>
+                    </div>
                 </div>
-            </div>
 
-            <div className="max-w-4xl mx-auto space-y-8 p-6">
-                <div className="space-y-6">
+                <div className="max-w-4xl w-full mx-auto space-y-6">
                     {announcements.length > 0 ? announcements.map((ann) => (
                         <Card key={ann.id} className="overflow-hidden border-l-4 border-l-orange-500 shadow-sm hover:shadow-md transition-shadow group">
                             <CardHeader className="bg-orange-50/50 dark:bg-orange-900/10 pb-3 border-b border-orange-100 dark:border-orange-900/30">
@@ -91,12 +101,12 @@ export default function GuestInfo({ announcements = [], auth }: InfoProps) {
                             </CardContent>
                         </Card>
                     )) : (
-                        <div className="flex flex-col items-center justify-center py-16 bg-white rounded-xl border border-dashed shadow-sm">
-                            <div className="bg-gray-100 p-4 rounded-full mb-4">
-                                <Megaphone className="h-8 w-8 text-gray-400" />
+                        <div className="flex flex-col items-center justify-center py-16 bg-card rounded-xl border border-dashed shadow-sm">
+                            <div className="bg-muted p-4 rounded-full mb-4">
+                                <Megaphone className="h-8 w-8 text-muted-foreground" />
                             </div>
-                            <h3 className="text-lg font-medium text-gray-900">Belum ada pengumuman</h3>
-                            <p className="text-gray-500 mt-1">Informasi terbaru akan muncul di halaman ini.</p>
+                            <h3 className="text-lg font-medium">Belum ada pengumuman</h3>
+                            <p className="text-muted-foreground mt-1">Informasi terbaru akan muncul di halaman ini.</p>
                         </div>
                     )}
                 </div>
@@ -112,7 +122,7 @@ export default function GuestInfo({ announcements = [], auth }: InfoProps) {
                                     <Megaphone className="h-5 w-5" />
                                     <span className="text-sm font-semibold uppercase tracking-wider">Pengumuman</span>
                                 </div>
-                                <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white leading-tight">
+                                <DialogTitle className="text-2xl font-bold leading-tight">
                                     {selectedAnnouncement.title}
                                 </DialogTitle>
                                 <DialogDescription className="flex items-center gap-2 mt-2 pt-2 border-t">
@@ -122,7 +132,7 @@ export default function GuestInfo({ announcements = [], auth }: InfoProps) {
                             </DialogHeader>
                             
                             <div className="mt-6 space-y-4">
-                                <div className="prose dark:prose-invert max-w-none text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed text-base">
+                                <div className="prose dark:prose-invert max-w-none whitespace-pre-wrap leading-relaxed text-base text-foreground">
                                     {selectedAnnouncement.content}
                                 </div>
                             </div>
@@ -134,6 +144,6 @@ export default function GuestInfo({ announcements = [], auth }: InfoProps) {
                     )}
                 </DialogContent>
             </Dialog>
-        </div>
+        </AppLayout>
     );
 }
