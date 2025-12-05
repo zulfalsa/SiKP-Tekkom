@@ -4,50 +4,51 @@ namespace App\Http\Controllers\Guest;
 
 use App\Http\Controllers\Controller;
 use App\Repositories\Interfaces\DocumentRepositoryInterface;
+use App\Repositories\Interfaces\AnnouncementRepositoryInterface;
+use App\Repositories\Interfaces\LinkRepositoryInterface;
 use App\Services\RepositoryDocumentService;
 use Inertia\Inertia;
-use App\Models\Announcement; 
+use Illuminate\Support\Facades\Auth;
+use App\Models\Announcement; // Pastikan import Model Announcement ada jika dipakai di welcome()
 use App\Exceptions\DocumentFailureException;
 
 class PageController extends Controller
 {
-    protected $documentRepo;
-    protected $fileService;
-
     public function __construct(
-        DocumentRepositoryInterface $documentRepo,
-        RepositoryDocumentService $fileService
-    ) {
-        $this->documentRepo = $documentRepo;
-        $this->fileService = $fileService;
-    }
+        protected DocumentRepositoryInterface $documentRepo,
+        protected AnnouncementRepositoryInterface $announcementRepo,
+        protected LinkRepositoryInterface $linkRepo,
+        protected RepositoryDocumentService $fileService
+    ) {}
 
-    // Halaman Landing / Dashboard Mahasiswa
     public function welcome()
     {
-        // Ambil pengumuman aktif (tanpa repository pattern yg kompleks karena sederhana)
-        $announcements = Announcement::where('is_active', true)
-                        ->orderBy('created_at', 'desc')
-                        ->take(3)
-                        ->get();
-
+        $announcements = $this->announcementRepo->getAllActive()->take(3);
+        
         return Inertia::render('welcome', [
             'announcements' => $announcements,
-            'canLogin' => true, 
+            'canLogin' => true,
+            'auth' => ['user' => Auth::user()]
         ]);
     }
 
-    // Halaman Pusat Dokumen & Formulir
     public function documents()
     {
-        $documents = $this->documentRepo->getAllActive();
-        
         return Inertia::render('guest/documents', [
-            'documents' => $documents
+            'documents' => $this->documentRepo->getAllActive(),
+            'links' => $this->linkRepo->getAll(), 
+            'auth' => ['user' => Auth::user()]
         ]);
     }
 
-    // Fitur Download Dokumen
+    public function info()
+    {
+        return Inertia::render('guest/info', [
+            'announcements' => $this->announcementRepo->getAllActive(),
+            'auth' => ['user' => Auth::user()]
+        ]);
+    }
+
     public function downloadDocument($id)
     {
         $document = $this->documentRepo->find($id);
@@ -57,21 +58,9 @@ class PageController extends Controller
         }
 
         try {
-            return $this->fileService->getDownloadLink($document->file_path);
+            return $this->fileService->getDownloadLink($document->file_path, $document->title);
         } catch (DocumentFailureException $e) {
             return back()->withErrors(['error' => $e->getMessage()]);
         }
-    }
-
-    // Halaman Info & Syarat
-    public function info()
-    {
-        $announcements = Announcement::where('is_active', true)
-                        ->orderBy('created_at', 'desc')
-                        ->get();
-                        
-        return Inertia::render('guest/info', [
-            'announcements' => $announcements
-        ]);
     }
 }

@@ -5,20 +5,14 @@ namespace App\Services\Abstracts;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use App\Exceptions\DocumentFailureException;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 abstract class AbstractFileService
 {
-    protected string $disk = 'public';
+    protected string $disk = 'public'; 
 
-    /**
-     * Method abstract yang harus diimplementasikan oleh child class
-     * untuk menentukan folder penyimpanan (Polymorphism behavior)
-     */
     abstract protected function getStoragePath(): string;
 
-    /**
-     * Logika umum upload file
-     */
     public function upload(UploadedFile $file): string
     {
         try {
@@ -34,9 +28,6 @@ abstract class AbstractFileService
         }
     }
 
-    /**
-     * Logika umum hapus file
-     */
     public function delete(string $path): void
     {
         if (Storage::disk($this->disk)->exists($path)) {
@@ -45,19 +36,26 @@ abstract class AbstractFileService
     }
     
     /**
-     * Logika umum download
-     * Mengembalikan StreamedResponse
+     * Logika download dengan nama file kustom
+     * * @param string $path
+     * @param string|null $customFilename
+     * @return StreamedResponse
+     * @throws DocumentFailureException
      */
-    public function getDownloadLink(string $path)
+    public function getDownloadLink(string $path, ?string $customFilename = null)
     {
+        if (!Storage::disk($this->disk)->exists($path)) {
+             throw DocumentFailureException::fileNotFound();
+        }
         
+        // Jika custom filename diberikan, gunakan itu. Jika tidak, pakai nama asli file.
+        $name = $customFilename 
+            ? $customFilename . '.' . pathinfo($path, PATHINFO_EXTENSION) 
+            : null;
+
         /** @var \Illuminate\Filesystem\FilesystemAdapter $storage */
         $storage = Storage::disk($this->disk);
 
-        if (!$storage->exists($path)) {
-             throw DocumentFailureException::fileNotFound();
-        }
-
-        return $storage->download($path);
+        return $storage->download($path, $name);
     }
 }
