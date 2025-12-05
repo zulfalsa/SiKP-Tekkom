@@ -5,19 +5,36 @@ namespace App\Services\Abstracts;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use App\Exceptions\DocumentFailureException;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 
 abstract class AbstractFileService
 {
-    protected string $disk = 'public'; 
+    /**
+     * Menentukan disk (public, s3, supabase, dll)
+     */
+    protected function getDisk(): string
+    {
+        return config('filesystems.default');
+    }
 
+    /**
+     * Folder penyimpanan—WAJIB di‐override oleh class turunan
+     */
     abstract protected function getStoragePath(): string;
 
+    /**
+     * Upload file ke disk (Local, Public, S3, Supabase)
+     */
     public function upload(UploadedFile $file): string
     {
         try {
-            $path = $file->store($this->getStoragePath(), $this->disk);
-            
+            $path = $file->store(
+                $this->getStoragePath(),
+                [
+                    'disk' => $this->getDisk(),
+                    'visibility' => 'public',
+                ]
+            );
+
             if (!$path) {
                 throw DocumentFailureException::uploadFailed($file->getClientOriginalName());
             }
@@ -28,34 +45,69 @@ abstract class AbstractFileService
         }
     }
 
+    /**
+     * Menghapus file dari storage
+     */
     public function delete(string $path): void
     {
-        if (Storage::disk($this->disk)->exists($path)) {
-            Storage::disk($this->disk)->delete($path);
+        /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
+        $disk = Storage::disk($this->getDisk());
+
+        if ($disk->exists($path)) {
+            $disk->delete($path);
         }
     }
-    
+
     /**
-     * Logika download dengan nama file kustom
-     * * @param string $path
-     * @param string|null $customFilename
-     * @return StreamedResponse
-     * @throws DocumentFailureException
+     * Mendapatkan link download resmi:
+     * - Local → langsung download()
+     * - S3 / Supabase → Signed URL (temporaryUrl)
      */
-    public function getDownloadLink(string $path, ?string $customFilename = null)
+    public function getDownloadLink(string $path, ?string $filename = null)
     {
-        if (!Storage::disk($this->disk)->exists($path)) {
-             throw DocumentFailureException::fileNotFound();
+        /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
+        $disk = Storage::disk($this->getDisk());
+
+        if (!$disk->exists($path)) {
+            throw DocumentFailureException::fileNotFound();
         }
-        
-        // Jika custom filename diberikan, gunakan itu. Jika tidak, pakai nama asli file.
-        $name = $customFilename 
-            ? $customFilename . '.' . pathinfo($path, PATHINFO_EXTENSION) 
-            : null;
 
-        /** @var \Illuminate\Filesystem\FilesystemAdapter $storage */
-        $storage = Storage::disk($this->disk);
+        /**
+         * S3 / Supabase (S3-compatible)
+         * → HARUS menggunakan Signed URL, tidak bisa langsung url()
+         */
+        if ($this->getDisk() === 's3') {
+            
+            // 1. Ambil ekstensi asli dari path file yang tersimpan (misal: 'docx', 'pdf')
+            $extension = pathinfo($path, PATHINFO_EXTENSION);
+            
+            // 2. Tentukan nama file download. Jika user tidak input, pakai nama asli dari path.
+            $downloadFilename = $filename ?? basename($path);
 
-        return $storage->download($path, $name);
+            // 3. Pastikan nama file diakhiri dengan ekstensi yang benar agar format terjaga.
+            // Jika $downloadFilename belum punya ekstensi yang sesuai, kita tambahkan.
+            if ($extension && !str_ends_with(strtolower($downloadFilename), '.' . strtolower($extension))) {
+                $downloadFilename .= '.' . $extension;
+            }
+
+            // 4. Force browser untuk mengenali file sebagai attachment dengan nama & format yang benar
+            $options = [
+                'ResponseContentDisposition' => 'attachment; filename="' . $downloadFilename . '"',
+            ];
+
+            // Valid 5 menit
+            $signedUrl = $disk->temporaryUrl(
+                $path, 
+                now()->addMinutes(5),
+                $options
+            );
+            
+            return redirect($signedUrl);
+        }
+
+        /**
+         * Disk lokal/public → langsung download
+         */
+        return $disk->download($path, $filename);
     }
 }
