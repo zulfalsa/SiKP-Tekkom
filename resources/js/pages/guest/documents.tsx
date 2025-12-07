@@ -1,119 +1,209 @@
 import { Head } from '@inertiajs/react';
-import { FileText, Download, Link as LinkIcon } from 'lucide-react';
+import { FileText, Download, Link as LinkIcon, ExternalLink, Calendar, Code } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import AppLayout from '@/layouts/app-layout'; // Import Layout
+import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
+import '@/css/chat-assistant.css';
 
-// Interface LinkData
+// --- DUMMY DATA ---
 interface LinkData {
-    id: number;
-    title: string;
-    url: string;
+  id: number;
+  title: string;
+  url: string;
+}
+
+interface DocumentData {
+  id: number;
+  title: string;
+  description: string;
+  created_at: string;
 }
 
 interface DocumentProps {
-    documents: any[];
-    links: LinkData[];
-    auth: { user: any };
+  documents: DocumentData[];
+  links: LinkData[];
+  auth: { user: any };
 }
+
+// Data Dummy Dokumen Resmi
+const dummyDocuments: DocumentData[] = [
+  { id: 1, title: 'Template Laporan Akhir Kerja Praktik (Word)', description: 'Wajib menggunakan template ini untuk konsistensi format dan layout laporan. Versi terbaru 2024.', created_at: '2025-10-01T10:00:00Z' },
+  { id: 2, title: 'Surat Permohonan Izin Kerja Praktik', description: 'Digunakan untuk pengajuan izin resmi ke perusahaan atau instansi terkait. Format PDF.', created_at: '2025-09-15T10:00:00Z' },
+  { id: 3, title: 'Formulir Penilaian Pembimbing Lapangan', description: 'Formulir wajib diisi oleh Supervisor di tempat Kerja Praktik Anda. Format Excel.', created_at: '2025-11-05T10:00:00Z' },
+  { id: 4, title: 'Panduan Teknis Penulisan Abstrak (Revisi)', description: 'Panduan singkat tentang cara penulisan abstrak yang benar, termasuk kata kunci dan format.', created_at: '2025-11-20T10:00:00Z' },
+  { id: 5, title: 'Prosedur Pengajuan Seminar Kerja Praktik', description: 'Langkah-langkah lengkap yang harus diikuti sebelum mendaftar seminar dan sidang.', created_at: '2025-11-25T10:00:00Z' },
+  { id: 6, title: 'Daftar Kontak Dosen Pembimbing (Q3 2025)', description: 'Daftar kontak dan jam konsultasi Dosen Pembimbing terbaru per kuartal 3 tahun 2025.', created_at: '2025-12-01T10:00:00Z' },
+];
+
+// Data Dummy Tautan Penting
+const dummyLinks: LinkData[] = [
+  { id: 101, title: 'Pendaftaran Seminar & Sidang KP (Google Form)', url: 'https://forms.google.com/pendaftaran-sidang' },
+  { id: 102, title: 'Grup Diskusi WhatsApp Kerja Praktik', url: 'https://chat.whatsapp.com/group-kp-resmi' },
+  { id: 103, title: 'Jadwal Penting Akademik (Calendar)', url: 'https://calendar.google.com/akademik-kp' },
+];
 
 // Definisi Breadcrumbs
 const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Dokumen Publik',
-        href: '/dokumen',
-    },
+  { title: 'Dokumen Publik', href: '/dokumen' },
 ];
 
-export default function GuestDocuments({ documents = [], links = [], auth }: DocumentProps) {
-    return (
-        <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Dokumen & Berkas" />
+// --- KOMPONEN UTAMA (Kini dijamin menggunakan data dummy) ---
+export default function GuestDocuments({ auth }: DocumentProps) { // Menerima auth, tapi mengabaikan documents dan links yang masuk
+  
+  // Menggunakan data dummy secara eksplisit di dalam komponen
+  const documents = dummyDocuments;
+  const links = dummyLinks;
 
-            {/* Container Utama */}
-            <div className="flex h-full flex-1 flex-col gap-4 p-4 md:p-6 overflow-y-auto">
-                
-                {/* Header Halaman */}
-                <div className="flex items-center justify-between mb-4">
-                    <div>
-                        <h1 className="text-2xl font-bold tracking-tight text-sidebar-foreground">
-                            Pusat Unduhan
-                        </h1>
-                        <p className="text-muted-foreground">
-                            Unduh berkas resmi dan akses tautan penting untuk keperluan Kerja Praktik.
-                        </p>
-                    </div>
-                </div>
+  return (
+    <AppLayout breadcrumbs={breadcrumbs}>
+      <Head title="Dokumen & Berkas" />
 
-                <div className="max-w-5xl w-full space-y-8 mx-auto">
-                    {/* Dokumen Section */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2 text-xl">
-                                <FileText className="h-6 w-6 text-blue-600" /> Dokumen Resmi
-                            </CardTitle>
-                            <CardDescription>Template laporan, surat pengantar, dan form penilaian.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="grid gap-4">
-                            {documents && documents.length > 0 ? documents.map((doc) => (
-                                <div key={doc.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg bg-card hover:bg-accent/50 transition-colors gap-4">
-                                    <div>
-                                        <h3 className="font-semibold text-lg">{doc.title}</h3>
-                                        {doc.description && <p className="text-sm text-muted-foreground mb-1">{doc.description}</p>}
-                                        <p className="text-xs text-muted-foreground">Diupload: {new Date(doc.created_at).toLocaleDateString('id-ID')}</p>
-                                    </div>
-                                    <a href={`/dokumen/download/${doc.id}`} target="_blank" rel="noreferrer">
-                                        <Button size="sm" className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white">
-                                            <Download className="mr-2 h-4 w-4"/> Unduh
-                                        </Button>
-                                    </a>
-                                </div>
-                            )) : (
-                                <div className="text-center py-12 border border-dashed rounded-lg">
-                                    <FileText className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
-                                    <p className="text-muted-foreground">Belum ada dokumen yang tersedia saat ini.</p>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-
-                    {/* Link Section */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2 text-xl">
-                                <LinkIcon className="h-6 w-6 text-green-600" /> Tautan Eksternal
-                            </CardTitle>
-                            <CardDescription>Shortcut ke Google Form, Grup WA, dan sumber daya online lainnya.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="grid gap-4">
-                            {links && links.length > 0 ? links.map((link) => (
-                                <div key={link.id} className="flex items-center justify-between p-4 border rounded-lg bg-card hover:bg-accent/50 transition-colors group">
-                                    <div className="flex items-center gap-3">
-                                        <div className="bg-green-100 dark:bg-green-900/30 p-2.5 rounded-full text-green-600 dark:text-green-400">
-                                            <LinkIcon className="h-5 w-5" />
-                                        </div>
-                                        <span className="font-medium text-lg">{link.title}</span>
-                                    </div>
-                                    <a 
-                                        href={link.url} 
-                                        target="_blank" 
-                                        rel="noreferrer" 
-                                        className="text-blue-600 hover:text-blue-800 text-sm font-medium group-hover:translate-x-1 transition-transform inline-flex items-center px-4 py-2 rounded-md hover:bg-accent"
-                                    >
-                                        Buka <span className="hidden sm:inline ml-1">Tautan</span> &rarr;
-                                    </a>
-                                </div>
-                            )) : (
-                                <div className="text-center py-8 border border-dashed rounded-lg">
-                                    <LinkIcon className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
-                                    <p className="text-muted-foreground">Belum ada tautan tersedia.</p>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-                </div>
+      {/* Container Utama */}
+      <div className="flex h-full flex-1 flex-col gap-12 p-6 md:p-16 overflow-y-auto bg-white">
+        
+        {/* Konten Maksimal 7XL */}
+        <div className="max-w-7xl w-full mx-auto">
+          
+          {/* Header Halaman */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-12 border-b pb-6 border-gray-100">
+            <div className="space-y-1">
+              <h1 className="text-4xl font-extrabold tracking-tight text-gray-900">
+                Pusat Sumber Daya
+              </h1>
+              <p className="text-lg text-gray-500">
+                Akses koleksi dokumen resmi dan tautan penting terbaru.
+              </p>
             </div>
-        </AppLayout>
-    );
+
+            <div className="flex items-center gap-3">
+              <Button 
+                size="sm" 
+                variant="outline"
+                className="text-violet-700 border-violet-300 hover:bg-violet-50 transition-colors shadow-sm"
+              >
+                Butuh Bantuan?
+              </Button>
+            </div>
+          </div>
+          {/* --- */}
+
+          <div className="space-y-12">
+            
+            {/* Dokumen Section */}
+            <section 
+              className="transition-all duration-700 delay-100" 
+              data-aos="fade-up"
+            >
+              <h2 className="text-2xl font-bold mb-6 text-gray-800 flex items-center gap-3">
+                <FileText className="h-6 w-6 text-violet-600"/> Dokumen Resmi
+              </h2>
+              <p className="text-sm text-gray-500 mb-6">
+                Template laporan, surat pengantar, dan form penilaian yang wajib diunduh.
+              </p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {/* Menggunakan 'documents' yang kini adalah 'dummyDocuments' */}
+                {documents && documents.length > 0 ? (
+                  documents.map((doc) => (
+                    <Card 
+                      key={doc.id}
+                      className="group shadow-md hover:shadow-xl transition-all duration-300 ease-in-out border border-gray-100 hover:border-violet-300 transform hover:-translate-y-1"
+                    >
+                      <CardContent className="p-5">
+                        <div className="flex justify-between items-start gap-4">
+                          <div className="min-w-0">
+                            <h3 className="font-medium text-base text-gray-900 group-hover:text-violet-700 transition-colors line-clamp-2">
+                              {doc.title}
+                            </h3>
+                            {doc.description && (
+                              <p className="text-xs text-gray-500 mt-1 line-clamp-2">{doc.description}</p>
+                            )}
+                            <p className="text-xs text-gray-400 mt-3">Diperbarui: {new Date(doc.created_at).toLocaleDateString('id-ID')}</p>
+                          </div>
+                          
+                          <a href={`/dokumen/download/${doc.id}`} target="_blank" rel="noreferrer" className="flex-shrink-0">
+                            <Button 
+                              size="icon" 
+                              className="w-10 h-10 bg-violet-600 hover:bg-violet-700 text-white shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+                              aria-label={`Unduh ${doc.title}`}
+                            >
+                              <Download className="h-4 w-4" />
+                            </Button>
+                          </a>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))
+                ) : (
+                  <div className="lg:col-span-3 text-center py-12 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50/70">
+                    <FileText className="h-10 w-10 text-gray-400 mx-auto mb-4" />
+                    <p className="text-base text-gray-500 font-medium">Belum ada dokumen yang tersedia saat ini.</p>
+                  </div>
+                )}
+              </div>
+            </section>
+
+            {/* --- */}
+            
+            {/* Link Section: Tampilan List Elegan */}
+            <section 
+              className="transition-all duration-700 delay-200"
+              data-aos="fade-up"
+            >
+              <h2 className="text-2xl font-bold mb-6 text-gray-800 flex items-center gap-3">
+                <LinkIcon className="h-6 w-6 text-violet-600"/> Tautan Penting
+              </h2>
+              <p className="text-sm text-gray-500 mb-6">
+                Akses cepat ke formulir eksternal, grup diskusi, dan sumber daya online.
+              </p>
+              
+              <div className="grid gap-3">
+                {/* Menggunakan 'links' yang kini adalah 'dummyLinks' */}
+                {links && links.length > 0 ? (
+                  links.map((link) => (
+                    <a
+                      key={link.id}
+                      href={link.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center justify-between p-4 border border-gray-100 rounded-xl bg-white transition-all duration-300 ease-in-out hover:shadow-md hover:border-violet-300 group"
+                    >
+                      <div className="flex items-center gap-4 min-w-0">
+                        {/* Fungsi Ikon berdasarkan Judul Tautan */}
+                        <div className="flex items-center justify-center w-9 h-9 rounded-full bg-violet-50 text-violet-600 shrink-0 transition-colors duration-300 group-hover:bg-violet-100">
+                          {link.title.includes('Jadwal') ? (
+                            <Calendar className="h-4 w-4" />
+                          ) : link.title.includes('Form') ? (
+                            <Code className="h-4 w-4" />
+                          ) : (
+                            <LinkIcon className="h-4 w-4" />
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <span className="font-semibold text-base text-gray-900 block truncate group-hover:text-violet-700 transition-colors">{link.title}</span>
+                          <span className="text-sm text-gray-400 block truncate">{link.url}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 text-violet-600 font-medium transition-all duration-300 flex-shrink-0 group-hover:gap-3 group-hover:text-violet-700">
+                        <span className="hidden sm:inline">Kunjungi</span>
+                        <ExternalLink className="h-4 w-4" />
+                      </div>
+                    </a>
+                  ))
+                ) : (
+                  <div className="text-center py-12 border-2 border-dashed border-gray-200 rounded-xl bg-gray-50/70">
+                    <LinkIcon className="h-10 w-10 text-gray-400 mx-auto mb-4" />
+                    <p className="text-base text-gray-500 font-medium">Belum ada tautan penting yang tersedia.</p>
+                  </div>
+                )}
+              </div>
+            </section>
+            
+          </div>
+        </div>
+      </div>
+    </AppLayout>
+  );
 }

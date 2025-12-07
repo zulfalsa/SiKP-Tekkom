@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\DocumentController;
 use App\Http\Controllers\Admin\AnnouncementController;
 use App\Http\Controllers\Admin\LinkController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\ChatController;
 use Inertia\Inertia;
 
 // --- GUEST ROUTES ---
@@ -28,5 +29,5 @@ Route::middleware(['auth', 'verified'])
     Route::resource('announcements', AnnouncementController::class);
     Route::resource('links', LinkController::class);
 });
-
+Route::post('/chat/send', [ChatController::class, 'sendMessage'])->middleware(['auth'])->name('chat.send');
 require __DIR__.'/settings.php';

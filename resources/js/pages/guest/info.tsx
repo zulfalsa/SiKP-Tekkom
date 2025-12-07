@@ -9,11 +9,12 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { useState } from 'react';
+import { useState, useEffect } from 'react'; // <-- IMPORT useEffect
 import AppLayout from '@/layouts/app-layout'; 
 import { type BreadcrumbItem } from '@/types';
 
-// Interface untuk data pengumuman
+// --- INTERFACE & DUMMY DATA ---
+
 interface Announcement {
     id: number;
     title: string;
@@ -26,6 +27,32 @@ interface InfoProps {
     auth: { user: any };
 }
 
+// DUMMY DATA PENGUMUMAN
+const dummyAnnouncements: Announcement[] = [
+    {
+        id: 1,
+        title: 'Pembukaan Pendaftaran Kerja Praktik Periode Ganjil 2026',
+        content: '<strong>PENTING!</strong> Pendaftaran Kerja Praktik (KP) untuk semester Ganjil Tahun Akademik 2025/2026 telah dibuka. Harap perhatikan tanggal-tanggal penting berikut:\n\n' +
+                 '<ul><li>Batas Akhir Pendaftaran: <strong>15 Januari 2026</strong></li><li>Pengumuman Dosen Pembimbing: 25 Januari 2026</li><li>Mulai Pelaksanaan KP: 1 Februari 2026</li></ul>\n\n' +
+                 'Pastikan semua dokumen persyaratan telah diunggah di sistem. Kontak bagian akademik jika ada kendala. Terima kasih!',
+        created_at: '2025-12-01T10:00:00Z',
+    },
+    {
+        id: 2,
+        title: 'Revisi Prosedur Pengajuan Surat Izin ke Perusahaan',
+        content: 'Telah terjadi revisi minor pada alur pengajuan surat izin ke perusahaan. Sekarang, Anda dapat mengajukan permohonan surat melalui <a href="#" target="_blank">formulir online</a> ini tanpa perlu datang ke kampus. Sistem akan memproses surat dalam 3x24 jam kerja.',
+        created_at: '2025-11-25T10:00:00Z',
+    },
+    {
+        id: 3,
+        title: 'Workshop Penulisan Laporan Ilmiah (Wajib KP)',
+        content: 'Diwajibkan bagi seluruh mahasiswa yang akan atau sedang melaksanakan KP untuk mengikuti Workshop Penulisan Laporan Ilmiah. Acara akan dilaksanakan pada:\n\n' +
+                 '<ol><li>Tanggal: Sabtu, 10 Desember 2025</li><li>Waktu: 09.00 - 12.00 WIB</li><li>Tempat: Ruang Auditorium A</li></ol>\n\n' +
+                 'Absensi akan dicatat sebagai syarat kelulusan KP.',
+        created_at: '2025-11-15T10:00:00Z',
+    },
+];
+
 // Definisi Breadcrumbs
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -34,10 +61,30 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function GuestInfo({ announcements = [], auth }: InfoProps) {
-    // State untuk menyimpan pengumuman yang sedang dipilih untuk ditampilkan di modal
+// --- KOMPONEN UTAMA ---
+
+export default function GuestInfo({ announcements: receivedAnnouncements, auth }: InfoProps) {
+    
+    // Hapus nilai default dari props di atas dan pindahkan ke sini untuk kontrol lebih baik
+    
+    // KRUSIAL: Logika untuk memastikan data dummy muncul
+    const currentAnnouncements = 
+        (Array.isArray(receivedAnnouncements) && receivedAnnouncements.length > 0)
+        ? receivedAnnouncements // Gunakan data dari backend jika valid
+        : dummyAnnouncements;  // Jika tidak valid (null, undefined, atau []), gunakan dummy
+
     const [selectedAnnouncement, setSelectedAnnouncement] = useState<Announcement | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+
+    // 👇 DEBUGGING: Cek nilai props di console
+    useEffect(() => {
+        console.log("Nilai Props 'announcements' yang diterima:", receivedAnnouncements);
+        console.log("Jumlah pengumuman yang ditampilkan (currentAnnouncements.length):", currentAnnouncements.length);
+        if (currentAnnouncements.length === 0) {
+            console.warn("PERINGATAN: Data pengumuman kosong. Jika Anda mengharapkan data muncul, cek Controller Laravel Anda.");
+        }
+    }, [receivedAnnouncements, currentAnnouncements.length]);
+    // 👆 DEBUGGING END
 
     // Fungsi untuk membuka modal detail
     const openDetail = (ann: Announcement) => {
@@ -45,43 +92,53 @@ export default function GuestInfo({ announcements = [], auth }: InfoProps) {
         setIsModalOpen(true);
     };
 
+    const formatDate = (dateString: string) => {
+        return new Date(dateString).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    };
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Informasi & Pengumuman" />
             
             {/* Container Utama */}
-            <div className="flex h-full flex-1 flex-col gap-4 p-4 md:p-6 overflow-y-auto">
+            <div className="flex h-full flex-1 flex-col gap-8 p-6 md:p-12 overflow-y-auto bg-gray-50 dark:bg-gray-900">
                 
                 {/* Header Halaman */}
-                <div className="flex items-center justify-between mb-4">
-                    <div>
-                        <h1 className="text-2xl font-bold tracking-tight text-sidebar-foreground">
-                            Papan Informasi
-                        </h1>
-                        <p className="text-muted-foreground">
-                            Berita terbaru dan informasi penting seputar Kerja Praktik.
-                        </p>
+                <div className="max-w-4xl w-full mx-auto">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 border-b pb-6 dark:border-gray-700">
+                        <div className="space-y-1">
+                            <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-gray-100 flex items-center gap-3">
+                                <Info className="h-7 w-7 text-violet-600" /> Papan Informasi & Syarat
+                            </h1>
+                            <p className="text-md text-gray-600 dark:text-gray-400">
+                                Berita terbaru, jadwal akademik, dan syarat penting seputar Kerja Praktik.
+                            </p>
+                        </div>
                     </div>
                 </div>
 
+                {/* Daftar Pengumuman */}
                 <div className="max-w-4xl w-full mx-auto space-y-6">
-                    {announcements.length > 0 ? announcements.map((ann) => (
-                        <Card key={ann.id} className="overflow-hidden border-l-4 border-l-orange-500 shadow-sm hover:shadow-md transition-shadow group">
-                            <CardHeader className="bg-orange-50/50 dark:bg-orange-900/10 pb-3 border-b border-orange-100 dark:border-orange-900/30">
+                    {currentAnnouncements.length > 0 ? currentAnnouncements.map((ann, index) => (
+                        <Card 
+                            key={ann.id} 
+                            className="overflow-hidden border-l-4 border-l-violet-600 shadow-md hover:shadow-xl transition-all duration-300 ease-in-out transform hover:-translate-y-0.5 group dark:bg-gray-800 dark:border-gray-700"
+                        >
+                            <CardHeader className="bg-violet-50/70 dark:bg-gray-700/50 pb-3 border-b border-violet-100 dark:border-gray-700">
                                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                                    <CardTitle className="text-xl text-gray-800 dark:text-gray-100 flex items-center gap-2">
-                                        <Megaphone className="h-5 w-5 text-orange-600" />
+                                    <CardTitle className="text-xl font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-3 group-hover:text-violet-700 transition-colors">
+                                        <Megaphone className="h-6 w-6 text-violet-600" />
                                         {ann.title}
                                     </CardTitle>
-                                    <div className="flex items-center text-xs font-medium text-gray-500 bg-white dark:bg-gray-800 px-3 py-1 rounded-full border shadow-sm">
-                                        <Calendar className="h-3 w-3 mr-1.5" />
-                                        {new Date(ann.created_at).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                                    <div className="flex items-center text-xs font-medium text-gray-500 bg-white dark:bg-gray-900 px-3 py-1 rounded-full border shadow-sm flex-shrink-0 dark:border-gray-700">
+                                        <Calendar className="h-3 w-3 mr-1.5 text-violet-500" />
+                                        {formatDate(ann.created_at)}
                                     </div>
                                 </div>
                             </CardHeader>
-                            <CardContent className="pt-6 relative">
+                            <CardContent className="pt-6">
                                 <div className="prose dark:prose-invert max-w-none">
-                                    {/* PERUBAHAN: Render HTML, bukan text biasa */}
+                                    {/* Render HTML dan batasi 3 baris */}
                                     <div 
                                         className="whitespace-pre-wrap text-gray-600 dark:text-gray-300 leading-relaxed text-base line-clamp-3 [&_a]:text-blue-600 [&_a]:underline"
                                         dangerouslySetInnerHTML={{ __html: ann.content }}
@@ -92,7 +149,7 @@ export default function GuestInfo({ announcements = [], auth }: InfoProps) {
                                     <Button 
                                         variant="outline" 
                                         size="sm" 
-                                        className="text-orange-600 border-orange-200 hover:bg-orange-50 hover:text-orange-700 dark:border-orange-900/50 dark:hover:bg-orange-900/20"
+                                        className="text-violet-600 border-violet-300 bg-white hover:bg-violet-50 hover:text-violet-700 dark:bg-gray-800 dark:border-violet-900/50 dark:hover:bg-violet-900/20 shadow-sm"
                                         onClick={() => openDetail(ann)}
                                     >
                                         <Eye className="mr-2 h-4 w-4" />
@@ -102,12 +159,13 @@ export default function GuestInfo({ announcements = [], auth }: InfoProps) {
                             </CardContent>
                         </Card>
                     )) : (
-                        <div className="flex flex-col items-center justify-center py-16 bg-card rounded-xl border border-dashed shadow-sm">
-                            <div className="bg-muted p-4 rounded-full mb-4">
-                                <Megaphone className="h-8 w-8 text-muted-foreground" />
+                        // Placeholder jika tidak ada pengumuman
+                        <div className="flex flex-col items-center justify-center py-16 bg-white dark:bg-gray-800 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-700 shadow-sm">
+                            <div className="bg-violet-100 p-4 rounded-full mb-4 dark:bg-violet-900/30">
+                                <Megaphone className="h-8 w-8 text-violet-500 dark:text-violet-400" />
                             </div>
-                            <h3 className="text-lg font-medium">Belum ada pengumuman</h3>
-                            <p className="text-muted-foreground mt-1">Informasi terbaru akan muncul di halaman ini.</p>
+                            <h3 className="text-lg font-medium text-gray-800 dark:text-gray-100">Belum ada pengumuman</h3>
+                            <p className="text-gray-500 dark:text-gray-400 mt-1">Informasi terbaru akan segera dipublikasikan di halaman ini.</p>
                         </div>
                     )}
                 </div>
@@ -115,35 +173,35 @@ export default function GuestInfo({ announcements = [], auth }: InfoProps) {
 
             {/* Modal Detail Pengumuman */}
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto dark:bg-gray-800">
                     {selectedAnnouncement && (
-                        <>
+                        <div>
                             <DialogHeader>
-                                <div className="flex items-center gap-2 mb-2 text-orange-600">
+                                <div className="flex items-center gap-2 mb-2 text-violet-600">
                                     <Megaphone className="h-5 w-5" />
-                                    <span className="text-sm font-semibold uppercase tracking-wider">Pengumuman</span>
+                                    <span className="text-sm font-semibold uppercase tracking-wider">Pengumuman Resmi</span>
                                 </div>
-                                <DialogTitle className="text-2xl font-bold leading-tight">
+                                <DialogTitle className="text-2xl font-bold leading-tight dark:text-gray-100">
                                     {selectedAnnouncement.title}
                                 </DialogTitle>
-                                <DialogDescription className="flex items-center gap-2 mt-2 pt-2 border-t">
-                                    <Calendar className="h-4 w-4" />
-                                    Diterbitkan pada: {new Date(selectedAnnouncement.created_at).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                                <DialogDescription className="flex items-center gap-2 mt-2 pt-2 border-t dark:border-gray-700 dark:text-gray-400">
+                                    <Calendar className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                                    Diterbitkan pada: {formatDate(selectedAnnouncement.created_at)}
                                 </DialogDescription>
                             </DialogHeader>
                             
                             <div className="mt-6 space-y-4">
-                                {/* PERUBAHAN: Render HTML di Modal */}
+                                {/* Render HTML di Modal (Dengan formatting yang lengkap) */}
                                 <div 
                                     className="prose dark:prose-invert max-w-none whitespace-pre-wrap leading-relaxed text-base text-foreground [&_a]:text-blue-600 [&_a]:underline [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4"
                                     dangerouslySetInnerHTML={{ __html: selectedAnnouncement.content }}
                                 />
                             </div>
 
-                            <div className="mt-8 flex justify-end pt-4 border-t">
-                                <Button onClick={() => setIsModalOpen(false)}>Tutup</Button>
+                            <div className="mt-8 flex justify-end pt-4 border-t dark:border-gray-700">
+                                <Button onClick={() => setIsModalOpen(false)} className="bg-violet-600 hover:bg-violet-700">Tutup</Button>
                             </div>
-                        </>
+                        </div>
                     )}
                 </DialogContent>
             </Dialog>

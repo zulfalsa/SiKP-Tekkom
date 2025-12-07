@@ -1,0 +1,88 @@
+/* '@/css/chat-assistant.css' */
+
+/* General Background and Layout (Minimalistic) */
+.chat-page {
+    /* bg-gray-50 dan dark:bg-gray-900 dari Tailwind */
+}
+
+/* Header Styling */
+.chat-header {
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05); /* Soft shadow */
+}
+
+.avatar-assistant {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #8B5CF6; /* Purple-600 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+/* Conversation Bubbles (Modern & Asymmetric) */
+
+/* Assistant Bubble */
+.assistant-bubble {
+    max-width: 75%;
+    background-color: #FFFFFF; /* White/Light background */
+    color: #1F2937; /* Dark text */
+    padding: 12px 16px;
+    border-radius: 18px 18px 18px 4px; /* Sudut kiri bawah lebih tajam */
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+    border: 1px solid #F3F4F6; /* Minimal border */
+}
+
+/* User Bubble */
+.user-bubble {
+    max-width: 75%;
+    background-color: #8B5CF6; /* Purple-600 */
+    color: #FFFFFF; /* White text */
+    padding: 12px 16px;
+    border-radius: 18px 18px 4px 18px; /* Sudut kanan bawah lebih tajam */
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.2);
+}
+
+/* Welcome Card (Large Assistant Message) */
+.welcome-card {
+    background-color: #F5F3FF; /* Purple-50 */
+    border-color: #DDD6FE; /* Purple-200 */
+    padding: 16px;
+    border-radius: 12px;
+}
+
+.welcome-card .card-content {
+    padding: 0 !important;
+}
+
+/* Typing Indicator (Dots) */
+.typing-bubble {
+    max-width: 100px;
+    border-radius: 18px 18px 18px 4px;
+}
+
+.dot {
+    width: 8px;
+    height: 8px;
+    background-color: #9CA3AF; /* Gray-400 */
+    border-radius: 50%;
+    animation: bounce 1.4s infinite ease-in-out both;
+}
+
+.dot.delay {
+    animation-delay: -0.32s;
+}
+
+.dot.delay-lg {
+    animation-delay: -0.16s;
+}
+
+@keyframes bounce {
+    0%, 80%, 100% {
+        transform: scale(0);
+    }
+    40% {
+        transform: scale(1.0);
+    }
+}
