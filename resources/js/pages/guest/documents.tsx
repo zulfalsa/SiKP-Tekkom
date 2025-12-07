@@ -50,8 +50,6 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 // --- KOMPONEN UTAMA (Kini dijamin menggunakan data dummy) ---
 export default function GuestDocuments({ auth }: DocumentProps) { // Menerima auth, tapi mengabaikan documents dan links yang masuk
-  
-  // Menggunakan data dummy secara eksplisit di dalam komponen
   const documents = dummyDocuments;
   const links = dummyLinks;
 
