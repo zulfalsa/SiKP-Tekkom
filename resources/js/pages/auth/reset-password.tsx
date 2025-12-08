@@ -1,12 +1,13 @@
-import { update } from '@/routes/password';
-import { Form, Head } from '@inertiajs/react';
-
+import AppLogoIcon from '@/components/app-logo-icon';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import AuthLayout from '@/layouts/auth-layout';
+import { Head, Link, useForm } from '@inertiajs/react';
+import { ArrowLeft } from 'lucide-react';
+import { FormEventHandler } from 'react';
 
 interface ResetPasswordProps {
     token: string;
@@ -14,81 +15,122 @@ interface ResetPasswordProps {
 }
 
 export default function ResetPassword({ token, email }: ResetPasswordProps) {
+    const { data, setData, post, processing, errors, reset } = useForm({
+        token: token,
+        email: email,
+        password: '',
+        password_confirmation: '',
+    });
+
+    const submit: FormEventHandler = (e) => {
+        e.preventDefault();
+
+        post('/reset-password', {
+            onFinish: () => reset('password', 'password_confirmation'),
+        });
+    };
+
     return (
-        <AuthLayout
-            title="Reset password"
-            description="Please enter your new password below"
-        >
-            <Head title="Reset password" />
+        <div className="flex min-h-screen w-full items-center justify-center bg-[#ECECF4] p-4 dark:bg-gray-900">
+            <Head title="Reset Password" />
 
-            <Form
-                {...update.form()}
-                transform={(data) => ({ ...data, token, email })}
-                resetOnSuccess={['password', 'password_confirmation']}
-            >
-                {({ processing, errors }) => (
-                    <div className="grid gap-6">
-                        <div className="grid gap-2">
-                            <Label htmlFor="email">Email</Label>
-                            <Input
-                                id="email"
-                                type="email"
-                                name="email"
-                                autoComplete="email"
-                                value={email}
-                                className="mt-1 block w-full"
-                                readOnly
-                            />
-                            <InputError
-                                message={errors.email}
-                                className="mt-2"
-                            />
+            {/* Back to Dashboard Button */}
+            <div className="absolute top-4 left-4 md:top-8 md:left-8">
+                <Button
+                    variant="ghost"
+                    asChild
+                    className="group text-muted-foreground hover:text-foreground hover:bg-white/50"
+                >
+                    <Link href="/">
+                        <ArrowLeft className="mr-2 h-4 w-4 transition-transform group-hover:-translate-x-1" />
+                        Back to Dashboard
+                    </Link>
+                </Button>
+            </div>
+
+            <Card className="w-full max-w-[550px] border-0 shadow-2xl sm:rounded-xl bg-white/80 backdrop-blur-sm dark:bg-gray-800/80">
+                <CardContent className="p-8 md:p-14">
+                    {/* Header / Logo Section */}
+                    <div className="mb-10 flex flex-col items-center text-center">
+                        <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-transparent text-[#4F46E5] dark:text-indigo-400">
+                            <AppLogoIcon className="h-16 w-16 fill-current" />
                         </div>
-
-                        <div className="grid gap-2">
-                            <Label htmlFor="password">Password</Label>
-                            <Input
-                                id="password"
-                                type="password"
-                                name="password"
-                                autoComplete="new-password"
-                                className="mt-1 block w-full"
-                                autoFocus
-                                placeholder="Password"
-                            />
-                            <InputError message={errors.password} />
-                        </div>
-
-                        <div className="grid gap-2">
-                            <Label htmlFor="password_confirmation">
-                                Confirm password
-                            </Label>
-                            <Input
-                                id="password_confirmation"
-                                type="password"
-                                name="password_confirmation"
-                                autoComplete="new-password"
-                                className="mt-1 block w-full"
-                                placeholder="Confirm password"
-                            />
-                            <InputError
-                                message={errors.password_confirmation}
-                                className="mt-2"
-                            />
-                        </div>
-
-                        <Button
-                            type="submit"
-                            className="mt-4 w-full"
-                            disabled={processing}
-                            data-test="reset-password-button"
-                        >
-                            {processing && <Spinner />}
-                            Reset password
-                        </Button>
+                        <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100">
+                            SiKP Tekkom
+                        </h1>
+                        <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                            Atur Ulang Kata Sandi
+                        </p>
                     </div>
-                )}
-            </Form>
-        </AuthLayout>
+
+                    <form onSubmit={submit} className="flex flex-col gap-5">
+                        <div className="grid gap-5">
+                            {/* Email Input (Read Only) */}
+                            <div className="grid gap-2">
+                                <Label htmlFor="email" className="font-semibold text-gray-600 dark:text-gray-300 text-xs uppercase tracking-wider">
+                                    Email
+                                </Label>
+                                <Input
+                                    id="email"
+                                    type="email"
+                                    name="email"
+                                    value={data.email}
+                                    className="h-12 border-gray-300 bg-gray-50 px-4 text-base text-gray-500 focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 rounded-lg cursor-not-allowed"
+                                    autoComplete="email"
+                                    readOnly
+                                />
+                                <InputError message={errors.email} />
+                            </div>
+
+                            {/* Password Input */}
+                            <div className="grid gap-2">
+                                <Label htmlFor="password" className="font-semibold text-gray-600 dark:text-gray-300 text-xs uppercase tracking-wider">
+                                    Password Baru
+                                </Label>
+                                <Input
+                                    id="password"
+                                    type="password"
+                                    name="password"
+                                    value={data.password}
+                                    className="h-12 border-gray-300 bg-white px-4 text-base focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 rounded-lg"
+                                    autoComplete="new-password"
+                                    autoFocus
+                                    placeholder="••••••••"
+                                    onChange={(e) => setData('password', e.target.value)}
+                                />
+                                <InputError message={errors.password} />
+                            </div>
+
+                            {/* Confirm Password Input */}
+                            <div className="grid gap-2">
+                                <Label htmlFor="password_confirmation" className="font-semibold text-gray-600 dark:text-gray-300 text-xs uppercase tracking-wider">
+                                    Konfirmasi Password Baru
+                                </Label>
+                                <Input
+                                    id="password_confirmation"
+                                    type="password"
+                                    name="password_confirmation"
+                                    value={data.password_confirmation}
+                                    className="h-12 border-gray-300 bg-white px-4 text-base focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 rounded-lg"
+                                    autoComplete="new-password"
+                                    placeholder="••••••••"
+                                    onChange={(e) => setData('password_confirmation', e.target.value)}
+                                />
+                                <InputError message={errors.password_confirmation} />
+                            </div>
+
+                            <Button
+                                type="submit"
+                                className="mt-4 w-full h-12 text-base font-bold bg-[#4834d4] hover:bg-[#3c2bb3] text-white shadow-lg transition-all hover:shadow-indigo-500/30 rounded-lg"
+                                disabled={processing}
+                            >
+                                {processing && <Spinner className="mr-2 h-4 w-4" />}
+                                Reset Password
+                            </Button>
+                        </div>
+                    </form>
+                </CardContent>
+            </Card>
+        </div>
     );
 }
