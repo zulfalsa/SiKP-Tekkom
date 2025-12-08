@@ -111,7 +111,7 @@ export default function GuestDocuments({ documents = [], links = [], auth }: Doc
                                                 rel="noreferrer" 
                                                 className="w-full"
                                             >
-                                                <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white shadow-sm gap-2">
+                                                <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white shadow-sm gap-2">
                                                     <Download className="h-4 w-4" />
                                                     Unduh Berkas
                                                 </Button>
