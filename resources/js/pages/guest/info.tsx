@@ -56,7 +56,7 @@ const dummyAnnouncements: Announcement[] = [
 // Definisi Breadcrumbs
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Info & Syarat',
+        title: 'Pedoman & Persyaratan Resmi',
         href: '/info-syarat',
     },
 ];

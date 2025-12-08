@@ -1,8 +1,22 @@
 import { Head } from '@inertiajs/react';
-import { FileText, Download, Link as LinkIcon } from 'lucide-react';
+import { 
+    FileText, 
+    Download, 
+    Link as LinkIcon, 
+    Calendar, 
+    ExternalLink 
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import AppLayout from '@/layouts/app-layout'; // Import Layout
+import { 
+    Card, 
+    CardContent, 
+    CardHeader, 
+    CardTitle, 
+    CardDescription, 
+    CardFooter 
+} from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 
 // Interface LinkData
@@ -18,7 +32,7 @@ interface DocumentProps {
     auth: { user: any };
 }
 
-// Definisi Breadcrumbs
+//
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Dokumen Publik',
@@ -31,87 +45,146 @@ export default function GuestDocuments({ documents = [], links = [], auth }: Doc
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dokumen & Berkas" />
 
-            {/* Container Utama */}
-            <div className="flex h-full flex-1 flex-col gap-4 p-4 md:p-6 overflow-y-auto">
+            <div className="flex h-full flex-1 flex-col gap-6 p-4 md:p-8 overflow-y-auto">
                 
                 {/* Header Halaman */}
-                <div className="flex items-center justify-between mb-4">
-                    <div>
-                        <h1 className="text-2xl font-bold tracking-tight text-sidebar-foreground">
-                            Pusat Unduhan
-                        </h1>
-                        <p className="text-muted-foreground">
-                            Unduh berkas resmi dan akses tautan penting untuk keperluan Kerja Praktik.
-                        </p>
-                    </div>
+                <div className="flex flex-col gap-2">
+                    <h1 className="text-3xl font-bold tracking-tight text-foreground">
+                        Pusat Unduhan
+                    </h1>
+                    <p className="text-muted-foreground text-lg max-w-2xl">
+                        Unduh berkas resmi dan akses tautan penting untuk keperluan Kerja Praktik.
+                    </p>
                 </div>
 
-                <div className="max-w-5xl w-full space-y-8 mx-auto">
-                    {/* Dokumen Section */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2 text-xl">
-                                <FileText className="h-6 w-6 text-blue-600" /> Dokumen Resmi
-                            </CardTitle>
-                            <CardDescription>Template laporan, surat pengantar, dan form penilaian.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="grid gap-4">
-                            {documents && documents.length > 0 ? documents.map((doc) => (
-                                <div key={doc.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg bg-card hover:bg-accent/50 transition-colors gap-4">
-                                    <div>
-                                        <h3 className="font-semibold text-lg">{doc.title}</h3>
-                                        {doc.description && <p className="text-sm text-muted-foreground mb-1">{doc.description}</p>}
-                                        <p className="text-xs text-muted-foreground">Diupload: {new Date(doc.created_at).toLocaleDateString('id-ID')}</p>
-                                    </div>
-                                    <a href={`/dokumen/download/${doc.id}`} target="_blank" rel="noreferrer">
-                                        <Button size="sm" className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white">
-                                            <Download className="mr-2 h-4 w-4"/> Unduh
-                                        </Button>
-                                    </a>
-                                </div>
-                            )) : (
-                                <div className="text-center py-12 border border-dashed rounded-lg">
-                                    <FileText className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
-                                    <p className="text-muted-foreground">Belum ada dokumen yang tersedia saat ini.</p>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
+                <div className="space-y-10 w-full">
+                    
+                    {/* SECTION 1: DOKUMEN RESMI */}
+                    <section>
+                        <div className="flex items-center gap-2 mb-4">
+                            <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                                <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                            </div>
+                            <h2 className="text-xl font-semibold text-foreground">Dokumen Resmi</h2>
+                        </div>
 
-                    {/* Link Section */}
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2 text-xl">
-                                <LinkIcon className="h-6 w-6 text-green-600" /> Tautan Eksternal
-                            </CardTitle>
-                            <CardDescription>Shortcut ke Google Form, Grup WA, dan sumber daya online lainnya.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="grid gap-4">
-                            {links && links.length > 0 ? links.map((link) => (
-                                <div key={link.id} className="flex items-center justify-between p-4 border rounded-lg bg-card hover:bg-accent/50 transition-colors group">
-                                    <div className="flex items-center gap-3">
-                                        <div className="bg-green-100 dark:bg-green-900/30 p-2.5 rounded-full text-green-600 dark:text-green-400">
-                                            <LinkIcon className="h-5 w-5" />
-                                        </div>
-                                        <span className="font-medium text-lg">{link.title}</span>
-                                    </div>
-                                    <a 
-                                        href={link.url} 
-                                        target="_blank" 
-                                        rel="noreferrer" 
-                                        className="text-blue-600 hover:text-blue-800 text-sm font-medium group-hover:translate-x-1 transition-transform inline-flex items-center px-4 py-2 rounded-md hover:bg-accent"
-                                    >
-                                        Buka <span className="hidden sm:inline ml-1">Tautan</span> &rarr;
-                                    </a>
+                        {documents && documents.length > 0 ? (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                                {documents.map((doc) => (
+                                    <Card key={doc.id} className="flex flex-col hover:shadow-lg transition-all duration-300 group border-muted">
+                                        <CardHeader className="pb-3">
+                                            <div className="flex justify-between items-start mb-3">
+                                                <div className="p-2.5 bg-blue-50 dark:bg-blue-950/50 rounded-xl text-blue-600 dark:text-blue-400 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
+                                                    <FileText className="h-6 w-6" />
+                                                </div>
+                                                <Badge variant="outline" className="text-xs font-normal">
+                                                    Resmi
+                                                </Badge>
+                                            </div>
+                                            <CardTitle className="text-lg font-bold leading-tight line-clamp-2 min-h-[3rem]">
+                                                {doc.title}
+                                            </CardTitle>
+                                        </CardHeader>
+                                        
+                                        <CardContent className="flex-grow pb-2">
+                                            {doc.description && (
+                                                <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                                                    {doc.description}
+                                                </p>
+                                            )}
+                                            <div className="flex items-center gap-2 text-xs text-muted-foreground mt-auto">
+                                                <Calendar className="h-3.5 w-3.5" />
+                                                <span>
+                                                    {new Date(doc.created_at).toLocaleDateString('id-ID', {
+                                                        year: 'numeric',
+                                                        month: 'long',
+                                                        day: 'numeric'
+                                                    })}
+                                                </span>
+                                            </div>
+                                        </CardContent>
+
+                                        <CardFooter className="pt-2">
+                                            <a 
+                                                href={`/dokumen/download/${doc.id}`} 
+                                                target="_blank" 
+                                                rel="noreferrer" 
+                                                className="w-full"
+                                            >
+                                                <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white shadow-sm gap-2">
+                                                    <Download className="h-4 w-4" />
+                                                    Unduh Berkas
+                                                </Button>
+                                            </a>
+                                        </CardFooter>
+                                    </Card>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="flex flex-col items-center justify-center py-12 border-2 border-dashed rounded-xl bg-muted/30">
+                                <div className="p-4 bg-muted rounded-full mb-3">
+                                    <FileText className="h-8 w-8 text-muted-foreground" />
                                 </div>
-                            )) : (
-                                <div className="text-center py-8 border border-dashed rounded-lg">
-                                    <LinkIcon className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
-                                    <p className="text-muted-foreground">Belum ada tautan tersedia.</p>
+                                <p className="text-muted-foreground font-medium">Belum ada dokumen yang tersedia.</p>
+                            </div>
+                        )}
+                    </section>
+
+                    {/* SECTION 2: TAUTAN EKSTERNAL */}
+                    <section>
+                        <div className="flex items-center gap-2 mb-4">
+                            <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                                <LinkIcon className="h-5 w-5 text-green-600 dark:text-green-400" />
+                            </div>
+                            <h2 className="text-xl font-semibold text-foreground">Tautan Eksternal</h2>
+                        </div>
+
+                        {links && links.length > 0 ? (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                                {links.map((link) => (
+                                    <Card key={link.id} className="flex flex-col hover:shadow-lg transition-all duration-300 group border-muted">
+                                        <CardHeader className="pb-3">
+                                            <div className="flex justify-between items-start mb-2">
+                                                <div className="p-2.5 bg-green-50 dark:bg-green-950/50 rounded-xl text-green-600 dark:text-green-400 group-hover:bg-green-600 group-hover:text-white transition-colors duration-300">
+                                                    <LinkIcon className="h-6 w-6" />
+                                                </div>
+                                            </div>
+                                            <CardTitle className="text-lg font-bold leading-tight">
+                                                {link.title}
+                                            </CardTitle>
+                                        </CardHeader>
+
+                                        <CardContent className="flex-grow">
+                                            <p className="text-sm text-muted-foreground">
+                                                Akses tautan langsung ke sumber daya eksternal terkait.
+                                            </p>
+                                        </CardContent>
+
+                                        <CardFooter className="pt-2">
+                                            <a 
+                                                href={link.url} 
+                                                target="_blank" 
+                                                rel="noreferrer" 
+                                                className="w-full"
+                                            >
+                                                <Button variant="outline" className="w-full hover:bg-green-50 hover:text-green-700 dark:hover:bg-green-900/20 group-hover:border-green-200 gap-2">
+                                                    Buka Tautan <ExternalLink className="h-3 w-3" />
+                                                </Button>
+                                            </a>
+                                        </CardFooter>
+                                    </Card>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="flex flex-col items-center justify-center py-12 border-2 border-dashed rounded-xl bg-muted/30">
+                                <div className="p-4 bg-muted rounded-full mb-3">
+                                    <LinkIcon className="h-8 w-8 text-muted-foreground" />
                                 </div>
-                            )}
-                        </CardContent>
-                    </Card>
+                                <p className="text-muted-foreground font-medium">Belum ada tautan tersedia.</p>
+                            </div>
+                        )}
+                    </section>
+
                 </div>
             </div>
         </AppLayout>
