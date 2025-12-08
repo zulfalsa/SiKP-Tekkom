@@ -94,7 +94,7 @@ export function AppSidebar() {
                 {!user && (
                     <SidebarGroup className="mt-auto group-data-[collapsible=icon]:hidden">
                         <SidebarGroupContent>
-                            <div className="px-4 py-3 text-sm text-white-200 bg-violet-700 rounded-lg mx-2 border border-violet-800 shadow-inner shadow-violet-900/20">
+                            <div className="px-4 py-3 text-sm text-black bg-violet-700 rounded-lg mx-2 border border-violet-800 shadow-inner shadow-violet-900/20">
                                 <div className="flex items-center gap-2 font-semibold text-white mb-1">
                                     <Phone className="h-4 w-4 text-white-300" />
                                     <span>Kontak Koordinator</span>
@@ -124,7 +124,7 @@ export function AppSidebar() {
                                 asChild 
                                 tooltip="Login Admin/Koordinator"
                                 // Styling Tombol Solid Ungu yang Konsisten
-                                className="bg-violet-600 hover:bg-violet-700 text-white font-semibold py-2 transition-colors duration-200 rounded-lg shadow-md shadow-violet-500/30" 
+                                className="bg-violet-600  text-black font-semibold py-2 transition-colors duration-200 rounded-lg shadow-md shadow-violet-500/30" 
                             >
                                 <Link href="/login" className="flex items-center w-full justify-center">
                                     <Shield className="h-4 w-4 mr-2" />

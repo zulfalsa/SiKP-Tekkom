@@ -22,7 +22,7 @@ export function NavUser() {
     const isMobile = useIsMobile();
 
     const customClasses = 
-        'text-violet-200 hover:bg-violet-800 transition-colors duration-200 rounded-lg';
+        'text-black hover:bg-violet-800 transition-colors duration-200 rounded-lg';
     
     const activeClasses = 
         'data-[state=open]:bg-violet-600 data-[state=open]:text-white data-[state=open]:shadow-md data-[state=open]:shadow-violet-500/30';
