@@ -15,71 +15,70 @@ import {
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { 
-    BookOpen, 
-    Folder, 
     LayoutGrid, 
     FileText, 
     Info, 
     MessageSquareText, 
-    Phone,             
-    Shield             
+    Phone, 
+    Shield 
 } from 'lucide-react';
 import AppLogo from './app-logo';
 
+// Tipe CSS Kustom untuk Styling Ungu Sidebar
+type CustomCSSProperties = React.CSSProperties & {
+    '--sidebar-background'?: string;
+    '--sidebar-foreground'?: string;
+    '--sidebar-accent'?: string;
+    '--sidebar-border'?: string;
+};
+
 export function AppSidebar() {
-    const { url, props } = usePage();
-    const auth = props.auth as any;
-    const user = auth?.user;
+    const { props } = usePage();
+    // Mendapatkan user dari props (hati-hati dengan type assertion di production)
+    const user = (props.auth as any)?.user; 
 
-    const isAdminRoute = url.startsWith('/admin');
+    // --- 1. DEFINISI MENU ---
 
-    // --- MENU DEFINITION ---
-
-    // Menu Umum (Bisa diakses Admin & Guest)
     const commonNavItems: NavItem[] = [
-        {
-            title: 'Chat Assistant', 
-            href: '/', 
-            icon: MessageSquareText,
-        },
-        {
-            title: 'Info & Syarat',
-            href: '/info-syarat',
-            icon: Info,
-        },
-        {
-            title: 'Dokumen',
-            href: '/dokumen',
-            icon: FileText,
-        },
+        { title: 'Chat Assistant', href: '/', icon: MessageSquareText },
+        { title: 'Info & Syarat KP', href: '/info-syarat', icon: Info },
+        { title: 'Dokumen', href: '/dokumen', icon: FileText },
     ];
 
-    // Menu Khusus Admin
     const adminNavItems: NavItem[] = [
-        {
-            title: 'Dashboard',
-            href: '/admin/dashboard',
-            icon: LayoutGrid,
-        },
+        { title: 'Dashboard Koordinator', href: '/admin/dashboard', icon: LayoutGrid },
         ...commonNavItems, 
     ];
 
-    const guestNavItems: NavItem[] = [
-        ...commonNavItems
-    ];
+    // Tentukan menu yang aktif (Admin atau Umum)
+    const currentNavItems = user ? adminNavItems : commonNavItems;
+    const footerNavItems: NavItem[] = []; // Biarkan kosong jika tidak digunakan
 
-    // Pilih menu berdasarkan status login
-    const currentNavItems = user ? adminNavItems : guestNavItems;
+    // --- 2. STYLE UNGU KUSTOM ---
 
-    const footerNavItems: NavItem[] = [];
+    const customStyle: CustomCSSProperties = {
+        '--sidebar-background': '#1a0d33', // Deep Violet
+        '--sidebar-foreground': '#f3e8ff', // Light Violet Text
+        '--sidebar-accent': '#a78bfa',
+        '--sidebar-border': '#3730a3',
+    };
+
+    const dashboardLink = user ? '/admin/dashboard' : '/';
 
     return (
-        <Sidebar collapsible="icon" variant="inset">
+        <Sidebar 
+            collapsible="icon" 
+            variant="inset"
+            // Styling Sidebar Utama: Deep Violet, Shadow Halus
+            className="dark:bg-violet-950 dark:text-violet-100 dark:border-violet-900 shadow-xl shadow-violet-900/30"
+            style={customStyle}
+        >
+            {/* --- HEADER (Logo/Judul) --- */}
             <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href={user ? '/admin/dashboard' : '/'} prefetch>
+                            <Link href={dashboardLink} prefetch>
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>
@@ -87,36 +86,47 @@ export function AppSidebar() {
                 </SidebarMenu>
             </SidebarHeader>
 
+            {/* --- KONTEN UTAMA (Navigasi) --- */}
             <SidebarContent>
-                {/* Main Navigation */}
                 <NavMain items={currentNavItems} />
 
-                {/* Kontak Admin Section (Hanya muncul jika user BELUM login / Guest) */}
+                {/* Kontak Darurat (Hanya untuk Guest/Mahasiswa) */}
                 {!user && (
                     <SidebarGroup className="mt-auto group-data-[collapsible=icon]:hidden">
                         <SidebarGroupContent>
-                            <div className="px-4 py-2 text-sm text-muted-foreground bg-sidebar-accent/10 rounded-md mx-2 border border-sidebar-border">
-                                <div className="flex items-center gap-2 font-medium text-sidebar-foreground mb-1">
-                                    <Phone className="h-4 w-4" />
-                                    <span>Kontak Admin</span>
+                            <div className="px-4 py-3 text-sm text-white-200 bg-violet-700 rounded-lg mx-2 border border-violet-800 shadow-inner shadow-violet-900/20">
+                                <div className="flex items-center gap-2 font-semibold text-white mb-1">
+                                    <Phone className="h-4 w-4 text-white-300" />
+                                    <span>Kontak Koordinator</span>
                                 </div>
-                                <p className="text-xs">Bu Ike (Koordinator)</p>
-                                <p className="text-xs mb-1">+62 812-3456-7890</p>
-                                <p className="text-xs mt-2">Email:</p>
-                                <p className="text-xs">admin.kp@undip.ac.id</p>
+                                <p className="text-xs text-white">Bu Ike (Koordinator KP)</p>
+                                {/* Menggunakan p tag tunggal untuk nomor telepon & email agar lebih rapi */}
+                                <p className="text-xs mb-1 font-mono text-white font-bold tracking-wider">
+                                    +62 812-3456-7890
+                                </p>
+                                <p className="text-xs mt-2 text-white">Email Administrasi:</p>
+                                <p className="text-xs font-mono text-white">
+                                    admin.kp@undip.ac.id
+                                </p>
                             </div>
                         </SidebarGroupContent>
                     </SidebarGroup>
                 )}
             </SidebarContent>
 
+            {/* --- FOOTER (Login/User Info) --- */}
             <SidebarFooter>
-                {/* Tombol Admin Access (Tersembunyi jika user sudah login) */}
+                {/* Tombol Login Admin (Hanya muncul jika BELUM login) */}
                 {!user && (
                     <SidebarMenu>
                         <SidebarMenuItem>
-                            <SidebarMenuButton asChild tooltip="Login Admin/Koordinator">
-                                <Link href="/login" className="text-muted-foreground hover:text-primary">
+                            <SidebarMenuButton 
+                                asChild 
+                                tooltip="Login Admin/Koordinator"
+                                // Styling Tombol Solid Ungu yang Konsisten
+                                className="bg-violet-600 hover:bg-violet-700 text-white font-semibold py-2 transition-colors duration-200 rounded-lg shadow-md shadow-violet-500/30" 
+                            >
+                                <Link href="/login" className="flex items-center w-full justify-center">
                                     <Shield className="h-4 w-4 mr-2" />
                                     <span>Akses Koordinator</span>
                                 </Link>
@@ -127,7 +137,7 @@ export function AppSidebar() {
 
                 <NavFooter items={footerNavItems} />
                 
-                {/* Tampilkan User Info hanya jika login */}
+                {/* User Info (Hanya muncul jika SUDAH login) */}
                 {user && <NavUser />}
             </SidebarFooter>
         </Sidebar>

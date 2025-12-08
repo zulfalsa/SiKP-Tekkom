@@ -28,7 +28,8 @@ export function NavFooter({
                         <SidebarMenuItem key={item.title}>
                             <SidebarMenuButton
                                 asChild
-                                className="text-neutral-600 hover:text-neutral-800 dark:text-neutral-300 dark:hover:text-neutral-100"
+                                // MENGUBAH: Menggunakan warna ungu terang untuk teks dan efek hover ungu yang lebih gelap/solid
+                                className="text-violet-300 hover:bg-violet-800 hover:text-white transition-colors duration-200 rounded-lg"
                             >
                                 <a
                                     href={resolveUrl(item.href)}

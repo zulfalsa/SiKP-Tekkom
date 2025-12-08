@@ -9,7 +9,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
-import { useState, useEffect } from 'react'; // <-- IMPORT useEffect
+import { useState, useEffect } from 'react';
 import AppLayout from '@/layouts/app-layout'; 
 import { type BreadcrumbItem } from '@/types';
 
@@ -65,26 +65,18 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function GuestInfo({ announcements: receivedAnnouncements, auth }: InfoProps) {
     
-    // Hapus nilai default dari props di atas dan pindahkan ke sini untuk kontrol lebih baik
-    
     // KRUSIAL: Logika untuk memastikan data dummy muncul
     const currentAnnouncements = 
         (Array.isArray(receivedAnnouncements) && receivedAnnouncements.length > 0)
-        ? receivedAnnouncements // Gunakan data dari backend jika valid
-        : dummyAnnouncements;  // Jika tidak valid (null, undefined, atau []), gunakan dummy
+        ? receivedAnnouncements
+        : dummyAnnouncements; 
 
     const [selectedAnnouncement, setSelectedAnnouncement] = useState<Announcement | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    // 👇 DEBUGGING: Cek nilai props di console
     useEffect(() => {
-        console.log("Nilai Props 'announcements' yang diterima:", receivedAnnouncements);
-        console.log("Jumlah pengumuman yang ditampilkan (currentAnnouncements.length):", currentAnnouncements.length);
-        if (currentAnnouncements.length === 0) {
-            console.warn("PERINGATAN: Data pengumuman kosong. Jika Anda mengharapkan data muncul, cek Controller Laravel Anda.");
-        }
+        // Logika debugging dihilangkan untuk kode bersih
     }, [receivedAnnouncements, currentAnnouncements.length]);
-    // 👆 DEBUGGING END
 
     // Fungsi untuk membuka modal detail
     const openDetail = (ann: Announcement) => {
@@ -100,37 +92,36 @@ export default function GuestInfo({ announcements: receivedAnnouncements, auth }
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Informasi & Pengumuman" />
             
-            {/* Container Utama */}
-            <div className="flex h-full flex-1 flex-col gap-8 p-6 md:p-12 overflow-y-auto bg-gray-50 dark:bg-gray-900">
+            {/* Container Utama: Ubah padding agar sesuai GuestDocuments */}
+            <div className="flex h-full flex-1 flex-col gap-6 p-4 md:p-8 overflow-y-auto">
                 
-                {/* Header Halaman */}
-                <div className="max-w-4xl w-full mx-auto">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 border-b pb-6 dark:border-gray-700">
-                        <div className="space-y-1">
-                            <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-gray-100 flex items-center gap-3">
-                                <Info className="h-7 w-7 text-violet-600" /> Papan Informasi & Syarat
-                            </h1>
-                            <p className="text-md text-gray-600 dark:text-gray-400">
-                                Berita terbaru, jadwal akademik, dan syarat penting seputar Kerja Praktik.
-                            </p>
-                        </div>
-                    </div>
+                {/* Header Halaman: Disesuaikan dengan Header Dokumen */}
+                <div className="flex flex-col gap-2">
+                    <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
+                        {/* Menggunakan ikon info sebagai ganti megaphone untuk header utama */}
+                        <Info className="h-7 w-7 text-violet-600" />
+                        Papan Informasi & Syarat
+                    </h1>
+                    <p className="text-muted-foreground text-lg max-w-2xl">
+                        Berita terbaru, jadwal akademik, dan syarat penting seputar Kerja Praktik.
+                    </p>
                 </div>
 
-                {/* Daftar Pengumuman */}
-                <div className="max-w-4xl w-full mx-auto space-y-6">
+                {/* Daftar Pengumuman: Menghilangkan max-width container */}
+                <div className="space-y-6 w-full">
                     {currentAnnouncements.length > 0 ? currentAnnouncements.map((ann, index) => (
                         <Card 
                             key={ann.id} 
-                            className="overflow-hidden border-l-4 border-l-violet-600 shadow-md hover:shadow-xl transition-all duration-300 ease-in-out transform hover:-translate-y-0.5 group dark:bg-gray-800 dark:border-gray-700"
+                            // Styling Card: Border kiri ungu, shadow lebih halus, warna background menyesuaikan tema
+                            className="overflow-hidden border-l-4 border-l-violet-600 shadow-sm hover:shadow-md transition-all duration-300 ease-in-out group border-muted dark:bg-card"
                         >
-                            <CardHeader className="bg-violet-50/70 dark:bg-gray-700/50 pb-3 border-b border-violet-100 dark:border-gray-700">
+                            <CardHeader className="bg-muted/50 pb-3 border-b border-muted dark:border-gray-700">
                                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-                                    <CardTitle className="text-xl font-semibold text-gray-800 dark:text-gray-100 flex items-center gap-3 group-hover:text-violet-700 transition-colors">
+                                    <CardTitle className="text-xl font-semibold text-foreground flex items-center gap-3 group-hover:text-violet-700 dark:group-hover:text-violet-400 transition-colors">
                                         <Megaphone className="h-6 w-6 text-violet-600" />
                                         {ann.title}
                                     </CardTitle>
-                                    <div className="flex items-center text-xs font-medium text-gray-500 bg-white dark:bg-gray-900 px-3 py-1 rounded-full border shadow-sm flex-shrink-0 dark:border-gray-700">
+                                    <div className="flex items-center text-xs font-medium text-muted-foreground bg-background px-3 py-1 rounded-full border shadow-sm flex-shrink-0 dark:border-border">
                                         <Calendar className="h-3 w-3 mr-1.5 text-violet-500" />
                                         {formatDate(ann.created_at)}
                                     </div>
@@ -138,18 +129,17 @@ export default function GuestInfo({ announcements: receivedAnnouncements, auth }
                             </CardHeader>
                             <CardContent className="pt-6">
                                 <div className="prose dark:prose-invert max-w-none">
-                                    {/* Render HTML dan batasi 3 baris */}
                                     <div 
-                                        className="whitespace-pre-wrap text-gray-600 dark:text-gray-300 leading-relaxed text-base line-clamp-3 [&_a]:text-blue-600 [&_a]:underline"
+                                        className="whitespace-pre-wrap text-muted-foreground leading-relaxed text-base line-clamp-3 [&_a]:text-blue-600 [&_a]:underline"
                                         dangerouslySetInnerHTML={{ __html: ann.content }}
                                     />
                                 </div>
                                 {/* Tombol Baca Selengkapnya */}
                                 <div className="mt-4 flex justify-end">
                                     <Button 
-                                        variant="outline" 
+                                        variant="ghost" // Menggunakan ghost untuk tampilan lebih minimal
                                         size="sm" 
-                                        className="text-violet-600 border-violet-300 bg-white hover:bg-violet-50 hover:text-violet-700 dark:bg-gray-800 dark:border-violet-900/50 dark:hover:bg-violet-900/20 shadow-sm"
+                                        className="text-violet-600 hover:bg-violet-50/50 hover:text-violet-700 dark:hover:bg-violet-900/30 dark:text-violet-400 dark:hover:text-violet-300 shadow-none"
                                         onClick={() => openDetail(ann)}
                                     >
                                         <Eye className="mr-2 h-4 w-4" />
@@ -160,12 +150,12 @@ export default function GuestInfo({ announcements: receivedAnnouncements, auth }
                         </Card>
                     )) : (
                         // Placeholder jika tidak ada pengumuman
-                        <div className="flex flex-col items-center justify-center py-16 bg-white dark:bg-gray-800 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-700 shadow-sm">
-                            <div className="bg-violet-100 p-4 rounded-full mb-4 dark:bg-violet-900/30">
-                                <Megaphone className="h-8 w-8 text-violet-500 dark:text-violet-400" />
+                        <div className="flex flex-col items-center justify-center py-16 rounded-xl border-2 border-dashed border-border bg-card/30">
+                            <div className="bg-muted p-4 rounded-full mb-4">
+                                <Megaphone className="h-8 w-8 text-muted-foreground" />
                             </div>
-                            <h3 className="text-lg font-medium text-gray-800 dark:text-gray-100">Belum ada pengumuman</h3>
-                            <p className="text-gray-500 dark:text-gray-400 mt-1">Informasi terbaru akan segera dipublikasikan di halaman ini.</p>
+                            <h3 className="text-lg font-medium text-foreground">Belum ada pengumuman</h3>
+                            <p className="text-muted-foreground mt-1">Informasi terbaru akan segera dipublikasikan di halaman ini.</p>
                         </div>
                     )}
                 </div>
@@ -173,7 +163,7 @@ export default function GuestInfo({ announcements: receivedAnnouncements, auth }
 
             {/* Modal Detail Pengumuman */}
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto dark:bg-gray-800">
+                <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto dark:bg-card">
                     {selectedAnnouncement && (
                         <div>
                             <DialogHeader>
@@ -181,11 +171,11 @@ export default function GuestInfo({ announcements: receivedAnnouncements, auth }
                                     <Megaphone className="h-5 w-5" />
                                     <span className="text-sm font-semibold uppercase tracking-wider">Pengumuman Resmi</span>
                                 </div>
-                                <DialogTitle className="text-2xl font-bold leading-tight dark:text-gray-100">
+                                <DialogTitle className="text-2xl font-bold leading-tight text-foreground">
                                     {selectedAnnouncement.title}
                                 </DialogTitle>
-                                <DialogDescription className="flex items-center gap-2 mt-2 pt-2 border-t dark:border-gray-700 dark:text-gray-400">
-                                    <Calendar className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                                <DialogDescription className="flex items-center gap-2 mt-2 pt-2 border-t dark:border-border text-muted-foreground">
+                                    <Calendar className="h-4 w-4 text-muted-foreground" />
                                     Diterbitkan pada: {formatDate(selectedAnnouncement.created_at)}
                                 </DialogDescription>
                             </DialogHeader>
@@ -198,7 +188,7 @@ export default function GuestInfo({ announcements: receivedAnnouncements, auth }
                                 />
                             </div>
 
-                            <div className="mt-8 flex justify-end pt-4 border-t dark:border-gray-700">
+                            <div className="mt-8 flex justify-end pt-4 border-t dark:border-border">
                                 <Button onClick={() => setIsModalOpen(false)} className="bg-violet-600 hover:bg-violet-700">Tutup</Button>
                             </div>
                         </div>
