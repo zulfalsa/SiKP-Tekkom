@@ -4,61 +4,90 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
-use OpenAI\Laravel\Facades\OpenAI;
 
 class ChatController extends Controller
 {
-    // Mengasumsikan Anda telah mengatur OPENAI_API_KEY di file .env Anda
-
+    /**
+     * Mengirim pesan pengguna ke OpenAI API, mempertahankan riwayat percakapan
+     * dalam session Laravel.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function sendMessage(Request $request)
     {
-        // 1. Validasi request
-        $validated = $request->validate([
-            'messages' => 'required|array',
-            'messages.*.role' => 'required|string|in:user,assistant',
-            'messages.*.content' => 'required|string',
-        ]);
-
-        $messages = $validated['messages'];
-        
-        // --- RAG (Retrieval-Augmented Generation) ---
-        // Jika Anda ingin bot hanya menjawab berdasarkan pedoman KP,
-        // Anda harus melakukan langkah-langkah berikut:
-        // 1. Ambil pertanyaan terakhir dari user.
-        $latestQuestion = end($messages)['content'];
-        // 2. Cari dokumen KP yang relevan di database (menggunakan full-text search atau vector database).
-        // 3. Tambahkan konteks dokumen ke dalam prompt system.
-        
-        // Contoh Prompt System untuk konteks KP:
-        $systemMessage = [
-            'role' => 'system',
-            'content' => "Anda adalah ChatBot SiKp, asisten yang sangat ramah dan informatif dari Teknik Komputer UNDIP. Jawaban Anda harus didasarkan **HANYA** pada informasi resmi tentang Kerja Praktik (KP). Jangan pernah menjawab pertanyaan di luar konteks KP. Balas dalam Bahasa Indonesia.",
-        ];
-        
-        // Gabungkan system message dengan riwayat chat
-        array_unshift($messages, $systemMessage);
-        
         try {
-            // 2. Panggil API OpenAI
-            $response = OpenAI::chat()->create([
-                'model' => 'gpt-3.5-turbo', // Pilih model yang sesuai (gpt-4o atau gpt-3.5-turbo)
-                'messages' => $messages,
+            // 1. Validasi Input
+            $request->validate([
+                'message' => 'required|string'
             ]);
 
-            // 3. Ekstrak jawaban
-            $botResponse = $response->choices[0]->message->content;
+            $userMessage = $request->message;
+            $apiKey = env('OPENAI_API_KEY');
 
-            // 4. Kirim kembali ke frontend
+            // Cek Ketersediaan API Key
+            if (!$apiKey) {
+                return response()->json([
+                    'error' => 'API Key tidak ditemukan.',
+                    'message' => 'Harap atur OPENAI_API_KEY di file .env Anda.'
+                ], 500);
+            }
+
+            // 2. Ambil Riwayat Percakapan (Session)
+            $messages = $request->session()->get('chat_history', []);
+
+            // Jika riwayat kosong, tambahkan pesan Sistem (System Prompt)
+            if (empty($messages)) {
+                $messages[] = [
+                    "role" => "system", 
+                    "content" => "Anda adalah Asisten AI yang ramah dan membantu untuk Sistem Informasi Proyek (SiKP). Jawablah pertanyaan dengan profesional dan relevan dengan konteks proyek atau teknologi."
+                ];
+            }
+
+            // 3. Tambahkan Pesan Pengguna ke Riwayat
+            $messages[] = [
+                "role" => "user", 
+                "content" => $userMessage
+            ];
+
+            // 4. Panggil OpenAI Chat Completion API
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $apiKey,
+                'Content-Type' => 'application/json',
+            ])->post('https://api.openai.com/v1/chat/completions', [
+                "model" => "gpt-3.5-turbo", // Model yang digunakan
+                "messages" => $messages,     // Mengirim seluruh riwayat percakapan
+                "temperature" => 0.7,        // Tingkat kreativitas (0.0-1.0)
+            ]);
+
+            // 5. Penanganan Error dari API
+            if ($response->failed()) {
+                return response()->json([
+                    'error' => 'Gagal memanggil API OpenAI',
+                    'detail' => $response->body()
+                ], 500);
+            }
+
+            // 6. Ambil Balasan AI
+            $botReply = $response->json()['choices'][0]['message']['content'];
+
+            // 7. Tambahkan Balasan AI ke Riwayat dan Simpan ke Session
+            $messages[] = [
+                "role" => "assistant", 
+                "content" => $botReply
+            ];
+            $request->session()->put('chat_history', $messages);
+
+            // 8. Kirim Balasan ke Frontend
             return response()->json([
-                'response' => $botResponse,
+                'reply' => $botReply
             ]);
 
         } catch (\Exception $e) {
-            // Log error
-            \Log::error('OpenAI Error: ' . $e->getMessage());
-
+            // Penanganan Error Server Internal
             return response()->json([
-                'response' => 'Maaf, terjadi masalah saat memproses permintaan Anda. Kode error: ' . substr($e->getMessage(), 0, 50) . '...',
+                'error' => 'Server Error',
+                'message' => $e->getMessage()
             ], 500);
         }
     }
