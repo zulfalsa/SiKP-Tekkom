@@ -62,8 +62,8 @@ export default function GuestDocuments({ documents = [], links = [], auth }: Doc
                     {/* SECTION 1: DOKUMEN RESMI */}
                     <section>
                         <div className="flex items-center gap-2 mb-4">
-                            <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                                <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                            <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                                <FileText className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                             </div>
                             <h2 className="text-xl font-semibold text-foreground">Dokumen Resmi</h2>
                         </div>
@@ -74,7 +74,7 @@ export default function GuestDocuments({ documents = [], links = [], auth }: Doc
                                     <Card key={doc.id} className="flex flex-col hover:shadow-lg transition-all duration-300 group border-muted">
                                         <CardHeader className="pb-3">
                                             <div className="flex justify-between items-start mb-3">
-                                                <div className="p-2.5 bg-blue-50 dark:bg-blue-950/50 rounded-xl text-blue-600 dark:text-blue-400 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
+                                                <div className="p-2.5 bg-purple-50 dark:bg-purple-950/50 rounded-xl text-purple-600 dark:text-purple-400 group-hover:bg-purple-600 group-hover:text-white transition-colors duration-300">
                                                     <FileText className="h-6 w-6" />
                                                 </div>
                                                 <Badge variant="outline" className="text-xs font-normal">
