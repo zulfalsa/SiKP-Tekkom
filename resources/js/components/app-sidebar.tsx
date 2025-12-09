@@ -124,7 +124,7 @@ export function AppSidebar() {
                                 asChild 
                                 tooltip="Login Admin/Koordinator"
                                 // Styling Tombol Solid Ungu yang Konsisten
-                                className="bg-violet-600  text-black font-semibold py-2 transition-colors duration-200 rounded-lg shadow-md shadow-violet-500/30" 
+                                className="bg-violet-600  text-white font-semibold py-2 transition-colors duration-200 rounded-lg shadow-md shadow-violet-500/30" 
                             >
                                 <Link href="/login" className="flex items-center w-full justify-center">
                                     <Shield className="h-4 w-4 mr-2" />
